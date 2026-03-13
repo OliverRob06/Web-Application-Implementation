@@ -6,8 +6,8 @@
 
 .review {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+
+  /* justify-content: space-between; */
 
   background: white;
   border: 1px solid #ddd;
@@ -18,4 +18,19 @@
 
 .BoxTitles {
     float: top;
+    display: inline-block;
+    
+    
+}
+
+.squareButton {
+    height: 30px;
+    width: 40px;
+    margin: 5px;
+
+} 
+
+#reviewDescription {
+    display: block;
+
 }
