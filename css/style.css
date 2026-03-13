@@ -9,7 +9,16 @@ input {
 	border-width: 2px;
 	border-color: black;
 	font-style: italic;
-	;
+}
+
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	background-color: #4d4d4d;
 }
 
 .big_button {
