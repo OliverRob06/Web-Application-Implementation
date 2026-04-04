@@ -3,16 +3,16 @@
 {% from 'components/forms.html' import button %}
 
 
-
 {% block title %}Sign Up{% endblock %}
 
 {% block content %}
 	<div class="container">
 		<div class="row justify-content-center text-center">
 			<div class="col-lg-8">
-                {{input('Username','text','Enter Username')}}
-                {{input('Password','password','Enter Password')}}
-                {{input('ReEnter','password','Re-Enter Password')}}
+                {{input('Username','text','Enter Username', 'signUpInput')}}
+                {{input('Password','password','Enter Password','signUpInput')}}
+                {{input('ReEnter','password','Re-Enter Password','signUpInput')}}
+                </div>
 			</div>
 		</div>
 
@@ -24,5 +24,4 @@
 			</div>
 		</div>
 
-	</div>
 {% endblock %}

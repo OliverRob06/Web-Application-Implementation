@@ -27,6 +27,14 @@ input {
     transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.signUpBig_button{
+    margin: 50px 0px 0px 0px;	
+}
+
+.signUpInput{
+	margin-top: 85px;
+}
+
 .big_button:hover {
 	background-color: #99BA7E;
 	transform: translateY(-4px);
@@ -35,27 +43,26 @@ input {
 }
 
 .reviews {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
 }
 
 .review {
-  display: flex;
+    display: flex;
 
   /* justify-content: space-between; */
 
-  background: snow;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+    background: snow;
+    border: 1px solid #ddd;
+    border-radius: 8px;
 
-  padding: 15px;
+    padding: 15px;
 }
 
 /* not needed */
 .BoxTitles {
     display: inline-block;
-  
 }
 
 .squareButton {

@@ -1,10 +1,10 @@
-{% macro input(name , type ="text", placeholder="") %}
+{% macro input(name , type ="text", placeholder="" , class ="") %}
     <div>
         <input  
                 name = "{{name}}"
                 type= "{{type}}"
                 placeholder="{{placeholder}}" 
-                class="text-center w-100">
+                class="text-center w-100 {{class}}">
             </input>
     </div>
 {% endmacro %}
@@ -18,12 +18,12 @@
     </div>
 {% endmacro %}
 
-{% macro button(name , type ="button" ,text ="") %}
+{% macro button(name , type ="button" ,text ="", class ="") %}
     <div>
         <button  
                 name = "{{name}}"
                 type= "{{type}}"
-                class="text-center btn big_button w-100">
+                class="text-center btn big_button w-100 {{class}}">
         {{text}}</button>
     </div>
 {% endmacro %}
