@@ -1,0 +1,30 @@
+{% macro input(name , type ="text", placeholder="") %}
+    <div>
+        <input  
+                name = "{{name}}"
+                type= "{{type}}"
+                placeholder="{{placeholder}}" 
+                class="text-center w-100">
+            </input>
+    </div>
+{% endmacro %}
+
+{% macro navButton(text ="", dest="") %}
+    <div>
+        <a href="{{ url_for(dest) }}"
+                class="text-center btn big_button w-100">
+                {{text}}
+        </a>
+    </div>
+{% endmacro %}
+
+{% macro button(name , type ="button" ,text ="") %}
+    <div>
+        <button  
+                name = "{{name}}"
+                type= "{{type}}"
+                class="text-center btn big_button w-100">
+        {{text}}</button>
+    </div>
+{% endmacro %}
+

@@ -1,5 +1,5 @@
 body {
-	background-color: #4d4d4d;
+	background-color: #FAFAEB;
 }
 
 input {
@@ -17,27 +17,21 @@ input {
 	padding: 0;
 }
 
-body {
-	background-color: #4d4d4d;
-}
 
 .big_button{
-    background-color: #b3ffff;
+    background-color: #BBE19F;
     font-size: 25px;
-    margin: 125px 0px 125px 0px;
+	font-weight: bold;
+    margin: 100px 0px 100px 0px;
     padding: 25px 0px 25px 0px;
     transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-    border-width: 2px;
-    border-radius: 12px;
-    border-color: black;
 }
 
 .big_button:hover {
-	background-color: #71c4c4;
+	background-color: #99BA7E;
 	transform: translateY(-4px);
+		color: black;
 	box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
-	border-width: 2px;
-	border-color: black;
 }
 
 .reviews {
