@@ -1,0 +1,29 @@
+{% extends 'layout/logintemp.html' %}
+
+{% block title %}Recipe app{% endblock %}
+
+{% block content %}
+	<div class="container-fluid overflow-hidden">
+		<div class="row justify-content-center mb-4">
+			<div class="col-md-8 d-flex">
+				<input type="text" placeholder="Enter Username" class="text-center w-100">
+			</div>
+		</div>
+
+
+		<div class="row justify-content-center mb-4">
+			<div class="col-md-8 d-flex">
+				<input type="password" placeholder="Enter Password" class="text-center w-100">
+			</div>
+		</div>
+
+		<div class="row justify-content-center">
+			<div class="col-md-4 d-flex">
+				<button type="button" class="btn big_button w-100" name="login"
+					onclick="window.location.href='index.html'">
+					Login </button>
+			</div>
+		</div>
+
+	</div>
+{% endblock %}
