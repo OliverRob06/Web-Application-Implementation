@@ -1,19 +1,24 @@
 {% from 'components/forms.html' import input %}
+{% from 'components/forms.html' import navButton %}
 
 <nav>
     <div class="container">
-    <div class="row">
-    <div class="col-lg-3">
-        <img class = "logo" src="{{ url_for('static', filename='images/7movieslogo.png') }}" alt="image">
-    </div>
-    <div class="col-lg-3">
-        <a class="nav-link " href="{{ url_for('home')}}" aria-current="page">Home</a>
-    </div>
-    <div class="col-lg-3">
-        {{input('navSearch','text','Search for a movie', 'navInput')}}    
-    </div>
-    <div class="col-lg-3">
-        <a href = "{{ url_for('account')}}"> <img class = "pfpNav" src = "placeholder.png"></a>    </div>
+        <div class="row align-items-center">
+            <div class="col-lg-1 text-start">
+                <img class = "logo" src="{{ url_for('static', filename='images/7movieslogo.png') }}" alt="image">
+            </div>
+            <div class="col-lg-2">
+                {{navButton('Home','home','navButton')}}
+            </div>
+            <div class="col-lg-2">
+            </div>
+            <div class="col-lg-6">
+                {{input('navSearch','text','Search for a movie', 'navInput')}}    
+            </div>
+            <div class="col-lg-1 text-end">
+                <a href = "{{ url_for('account')}}"> <img class = "pfpNav" src = "placeholder.png"></a>    
+            </div>
+        </div>
     </div>
 </nav>
 <!-- nav bar

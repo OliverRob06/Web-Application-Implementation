@@ -9,10 +9,10 @@
     </div>
 {% endmacro %}
 
-{% macro navButton(text ="", dest="") %}
+{% macro navButton(text ="", dest="", class ="") %}
     <div>
         <a href="{{ url_for(dest) }}"
-                class="text-center btn big_button w-100">
+                class="text-center btn w-100 {{class}}">
                 {{text}}
         </a>
     </div>
