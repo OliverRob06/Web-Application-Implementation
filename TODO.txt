@@ -1,0 +1,7 @@
+database connnetion
+
+login to work based on admin and users
+
+api calls (rolebased)
+
+
