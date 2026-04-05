@@ -20,6 +20,10 @@ def signup():
 def home():
     return render_template('home.html')
 
+@app.route('/account')
+def account():
+    return render_template('account.html')
+
 
 
 if __name__ == '__main__':

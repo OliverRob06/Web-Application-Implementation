@@ -1,15 +1,50 @@
+{% from 'components/forms.html' import input %}
 
-<img class = "logo" src="{{ url_for('static', filename='images/your_image.png') }}" alt="image">
 <nav>
-    <div class = "navBar">
-        <ul class ="navLinks">
-            <li> <a href = "#"> Home</a></li>
-            <li> <a href = "#"> Search</a></li>
-        </ul>
-    
-        <a href = "#"> <img class = "pfpNav" src = "placeholder.png"></a>
+    <div class="container">
+    <div class="row">
+    <div class="col-lg-3">
+        <img class = "logo" src="{{ url_for('static', filename='images/7movieslogo.png') }}" alt="image">
     </div>
-
-
+    <div class="col-lg-3">
+        <a class="nav-link " href="{{ url_for('home')}}" aria-current="page">Home</a>
+    </div>
+    <div class="col-lg-3">
+        {{input('navSearch','text','Search for a movie', 'navInput')}}    
+    </div>
+    <div class="col-lg-3">
+        <a href = "{{ url_for('account')}}"> <img class = "pfpNav" src = "placeholder.png"></a>    </div>
+    </div>
 </nav>
+<!-- nav bar
+        <nav>
+            <ul class="navUl nav nav-tabs fixed-top" id="navId" role="tablist">
+                <li class="main-item">
+                    <a href="{{ url_for('home')}}" class="nav-link white-link active">Home</a>
+                </li>
+                <li class="plot-item" role="presentation">
+                    <a href="{{ url_for('login')}}" class="nav-link white-link" >Gameplay/Plot</a>
+                </li>
+                <li class="development-item" role="presentation">
+                    <a href="development.html" class="nav-link white-link">Development</a>
+                </li>
+                <li class="Reception-item" role="presentation">
+                    <a href="Reception.html" class="nav-link white-link">Reception</a>
+                </li>
+                <li class="legacy-item" role="presentation">
+                    <a href="Legacy.html" class="nav-link white-link">Legacy </a>
+                </li>
+            </ul>
+        <br> <br>
+        </nav>
+
+
+        <div class="nav">
+
+        <img class = "logo" src="{{ url_for('static', filename='images/7movieslogo.png') }}" alt="image">
+            <a class="nav-link " href="{{ url_for('home')}}" aria-current="page">Home</a>
+            {{input('navSearch','text','Search for a movie', 'navInput')}}
+        <a href = "{{ url_for('account')}}"> <img class = "pfpNav" src = "placeholder.png"></a>
+    </div>
+-->
 
