@@ -1,7 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, session
+from flask_restful import Api, Resource
 from auth import ADMIN_PASSWD, admin_required
 import os
 from functools import wraps
+import uuid
 
 app = Flask(__name__, template_folder = "html/template", static_folder = "static")
 
@@ -12,8 +14,11 @@ app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
 users_db = {
     'john': 'password123',
     'jane': 'securepass',
-    
 }
+favourites = {}
+reviews = []
+ratings = {}
+reports = []
 
 #if the user isnt logged in send user to index.html
 def login_required(f):
@@ -94,8 +99,21 @@ def home():
 def account():
     return render_template('account.html')
 
+# change when other areas are done
+# api for searching movies, else return all movies
+class MovieAPI(Resource):
+    @login_required
+    def get(self, movie_id=None):
+        if movie_id:
+            return {'message': f'Get movie {movie_id}'}, 200
+        
+        query = request.args.get('q')
+        if query:
+            return {'message': f'Search for {query}'}, 200
+        
+        return {'message':'All movies'}, 200
 
-@app.route('/api/admin-only')
+@app.route('/api/admin/test')
 @admin_required
 def admin_secret():
     return "If you see this, you are an Admin!"
