@@ -16,20 +16,13 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         auth_header = request.headers.get('Authorization')
 
+        # if nothing entered in the password field
         if not auth_header:
             return jsonify({'error': 'Missing credentials'}), 401
-
-        # Expect format: "Bearer adminkey"
-        try:
-            scheme, token = auth_header.split()
-        except ValueError:
-            return jsonify({'error': 'Invalid auth format'}), 401
-
-        if scheme.lower() != 'bearer':
-            return jsonify({'error': 'Invalid auth scheme'}), 401
-
-        if not check_string(token, ADMIN_PASSWD):
-            return jsonify({'error': 'Invalid admin token'}), 403
+        
+        # if the password is wrong
+        if not check_string(auth_header, ADMIN_PASSWD):
+            return jsonify({'error': 'Invalid admin password'}), 403
 
         return f(*args, **kwargs)
 
