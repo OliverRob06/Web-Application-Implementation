@@ -1,6 +1,16 @@
 {% extends 'layout/base.html' %}
+{% from 'components/forms.html' import input %}
+{% from 'components/forms.html' import button %}
 
 {% block content %} 
-<h1> HOME PAGE TEST</h1>
+        <div class="row align-items-center g-0">
+            <div class="col-lg-10 pe-2 ps-4">
+                {{input('Search','text','Search for a movie', 'homeInput')}}    
+            </div>
+            <div class="col-lg-2 ps-2 pe-4">
+				{{button('Filter','submit','Filter','filterButton')}}
+            </div>
+        </div>
 
+        
 {% endblock %}

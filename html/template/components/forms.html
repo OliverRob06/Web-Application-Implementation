@@ -12,7 +12,7 @@
 {% macro navButton(text ="", dest="", class ="") %}
     <div>
         <a href="{{ url_for(dest) }}"
-                class="text-center btn w-100 {{class}}">
+                class="text-center w-100 {{class}}">
                 {{text}}
         </a>
     </div>
@@ -23,7 +23,7 @@
         <button  
                 name = "{{name}}"
                 type= "{{type}}"
-                class="text-center btn big_button w-100 {{class}}">
+                class="text-center big_button w-100 {{class}}">
         {{text}}</button>
     </div>
 {% endmacro %}
