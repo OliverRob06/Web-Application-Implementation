@@ -1,19 +1,25 @@
 from flask import Flask, render_template, request, redirect, url_for, session
+from flask_restful import Api, Resource
 from auth import ADMIN_PASSWD, admin_required
 import os
 from functools import wraps
+import uuid
 
 app = Flask(__name__, template_folder = "html/template", static_folder = "static")
 
 #cookie - if anyone is logged in 
 app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
+api = Api(app)
 
 # normie user logins before database
 users_db = {
     'john': 'password123',
     'jane': 'securepass',
-    
 }
+favourites = {}
+reviews = []
+ratings = {}
+reports = []
 
 #if the user isnt logged in send user to index.html
 def login_required(f):
@@ -94,11 +100,56 @@ def home():
 def account():
     return render_template('account.html')
 
+# change when other areas are done
+# api for searching movies, else return all movies
+class MovieAPI(Resource):
+    @login_required
+    def get(self, movie_id=None):
+        if movie_id:
+            return {'message': f'Get movie {movie_id}'}, 200
+        
+        query = request.args.get('q')
+        if query:
+            return {'message': f'Search for {query}'}, 200
+        
+        return {'message':'All movies'}, 200
+    
 
-@app.route('/api/admin-only')
+# change when other areas are done
+# api for getting and posting reviews
+class ReviewAPI(Resource):
+    @login_required
+    def get(self, movie_id):
+        movie_reviews = [r for r in reviews if r.get('movie_id') == movie_id]
+        return {'reviews': movie_reviews}, 200
+    
+    @login_required
+    def post(self, movie_id):
+        data = request.json
+
+        data['id'] = str(uuid.uuid4())
+        data['movie_id'] = movie_id
+        data['user'] = session['user']
+
+        reviews.append(data)
+
+        return {'message':'Review added'}, 200
+
+@app.route('/api/admin/test')
 @admin_required
 def admin_secret():
     return "If you see this, you are an Admin!"
+
+api.add_resource(MovieAPI,
+    '/api/movies',
+    '/api/movies/<int:movie_id>'
+)
+
+api.add_resource(ReviewAPI,
+    '/api/movies/<int:movie_id>/reviews'
+)
+
+
 
 if __name__ == '__main__':
     app.run(debug = True, host = '0.0.0.0', port = 8000)
