@@ -14,6 +14,9 @@ def check_string(input_string, target_string):
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        if session.get('role') == 'admin':
+            return f(*args, **kwargs)
+        
         auth_header = request.headers.get('Authorization')
 
         # if nothing entered in the password field

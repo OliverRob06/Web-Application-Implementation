@@ -26,10 +26,13 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user' not in session:
+            # If it's an API request, return JSON instead
+            if request.path.startswith('/api/'):
+                return {"error": "Unauthorized"}, 401
+            
             return redirect(url_for('index'))
         return f(*args, **kwargs)
     return decorated_function
-
 @app.route('/')
 def index():
     return render_template('index.html')
