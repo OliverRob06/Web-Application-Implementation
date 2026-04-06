@@ -174,6 +174,24 @@ class RatingAPI(Resource):
         ratings.setdefault(user, {})[movie_id] = data.get('rating')
         return {'message': 'Rating saved'}, 201
 
+class AdminReportAPI(Resource):
+    @login_required
+    def get(self):
+        if session.get('role') != 'admin':
+            return {"error": "Forbidden"}, 403
+
+        return {"reports": reports}, 200
+
+    @login_required
+    def delete(self, report_id):
+        if session.get('role') != 'admin':
+            return {"error": "Forbidden"}, 403
+
+        global reports
+        reports = [r for r in reports if r.get("id") != report_id]
+
+        return {"message": "Deleted"}, 200
+
 @app.route('/api/admin/test')
 @admin_required
 def admin_secret():
@@ -191,6 +209,15 @@ api.add_resource(FavouriteAPI,
 
 api.add_resource(ReviewAPI,
     '/api/movies/<int:movie_id>/reviews'
+)
+
+api.add_resource(RatingAPI,
+    '/api/movies/<int:movie_id>/rating'
+)
+
+api.add_resource(AdminReportAPI,
+    '/api/admin/reports',
+    '/api/admin/reports/<string:report_id>'
 )
 
 if __name__ == '__main__':
