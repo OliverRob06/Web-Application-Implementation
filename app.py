@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, redirect, url_for, session
 from flask_restful import Api, Resource
 from auth import ADMIN_PASSWD, login_required, admin_required
 import os
-from functools import wraps
 import uuid
 
 app = Flask(__name__, template_folder = "html/template", static_folder = "static")
