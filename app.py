@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_restful import Api, Resource
 from auth import ADMIN_PASSWD, login_required, admin_required
+from tmdb import fetch_movie, search_movies_tmdb, get_recommendations
+import requests
 import os
 import uuid
 
@@ -9,6 +11,10 @@ app = Flask(__name__, template_folder = "html/template", static_folder = "static
 #cookie - if anyone is logged in 
 app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
 api = Api(app)
+
+# Put this at the top of your file with other configs
+TMDB_API_KEY = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0ODRhNDk1ZDFmMTAyZjAzZjVjYjM0NWI4NzQxMGVhYSIsIm5iZiI6MTc3MTQxOTEwNy45MjgsInN1YiI6IjY5OTViNWUzYTFmOTM0YTAyYzFiMDQyMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.KwN2nJwtB5yWFINVYr3i3rBx6RXZi0wCqttqMVVZJFc"
+TMDB_BASE_URL = "https://api.themoviedb.org/3"
 
 # normie user logins before database
 users_db = {
@@ -96,13 +102,17 @@ class MovieAPI(Resource):
     @login_required
     def get(self, movie_id=None):
         if movie_id:
-            return {'message': f'Get movie {movie_id}'}, 200
+            movie = fetch_movie(movie_id)
+            if not movie:
+                return {'error':'Movie not found'}, 404
+            return movie, 200
         
         query = request.args.get('q')
         if query:
-            return {'message': f'Search for {query}'}, 200
+            results = search_movies_tmdb(query)
+            return {'results':results}, 200
         
-        return {'message':'All movies'}, 200
+        return {'error':'No query provided'}, 400
     
 # change when other areas are done
 # api for getting, posting and deleteing favourites
@@ -159,6 +169,8 @@ class ReviewAPI(Resource):
 
         return {'message':'Review added'}, 200
 
+# change when other areas are done
+# api for rating movies
 class RatingAPI(Resource):
     @login_required
     def get(self, movie_id):
@@ -173,6 +185,8 @@ class RatingAPI(Resource):
         ratings.setdefault(user, {})[movie_id] = data.get('rating')
         return {'message': 'Rating saved'}, 201
 
+# change when other areas are done
+# api for admins reviewing reported reviews
 class AdminReportAPI(Resource):
     @login_required
     def get(self):
