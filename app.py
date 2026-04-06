@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_restful import Api, Resource
-from auth import ADMIN_PASSWD, admin_required
+from auth import ADMIN_PASSWD, login_required, admin_required
 import os
 from functools import wraps
 import uuid
@@ -20,20 +20,6 @@ favourites = {}
 reviews = []
 ratings = {}
 reports = []
-
-#if the user isnt logged in send user to index.html
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user' not in session:
-            # If it's an API request, return JSON instead
-            if request.path.startswith('/api/'):
-                return {"error": "Unauthorized"}, 401
-            
-            return redirect(url_for('index'))
-        return f(*args, **kwargs)
-    return decorated_function
-
 
 @app.route('/')
 def index():
@@ -173,6 +159,20 @@ class ReviewAPI(Resource):
         reviews.append(data)
 
         return {'message':'Review added'}, 200
+
+class RatingAPI(Resource):
+    @login_required
+    def get(self, movie_id):
+        user = session['user']
+        return {'rating': ratings.get(user,{}).get(movie_id)}, 200
+    
+    @login_required
+    def post(self, movie_id):
+        user = session['user']
+        data = request.json
+
+        ratings.setdefault(user, {})[movie_id] = data.get('rating')
+        return {'message': 'Rating saved'}, 201
 
 @app.route('/api/admin/test')
 @admin_required

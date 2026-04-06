@@ -1,4 +1,4 @@
-database connnetion
+database things
 
 login to work based on admin and users
 

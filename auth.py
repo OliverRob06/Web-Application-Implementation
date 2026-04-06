@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import request, jsonify, session
+from flask import redirect, request, jsonify, session, url_for
 import os
 import hmac
 
@@ -10,6 +10,23 @@ ADMIN_PASSWD = os.environ.get("ADMIN_PASSWD", "adminkey")
 def check_string(input_string, target_string):
     # more secure comparison
     return hmac.compare_digest(input_string, target_string)
+
+#if the user isnt logged in send user to index.html
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user' not in session:
+            # If it's an API request, return JSON instead
+            if request.path.startswith('/api/'):
+                return {"error": "Unauthorized"}, 401
+            
+            return redirect(url_for('index'))
+        
+        return f(*args, **kwargs)
+    
+    return decorated_function
+
+
 
 def admin_required(f):
     @wraps(f)
