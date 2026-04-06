@@ -33,6 +33,8 @@ def login_required(f):
             return redirect(url_for('index'))
         return f(*args, **kwargs)
     return decorated_function
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -117,6 +119,40 @@ class MovieAPI(Resource):
         
         return {'message':'All movies'}, 200
     
+# change when other areas are done
+# api for getting, posting and deleteing favourites
+class FavouriteAPI(Resource):
+    @login_required
+    def get(self):
+        user = session['user']
+        return {'favourites': favourites.get(user, [])}, 200
+        
+    @login_required
+    def post(self):
+        user = session['user']
+        data = request.json
+
+        if not data:
+            return {'error': 'No data provided'}
+        
+        data['id'] = str(uuid.uuid4())
+
+        favourites.setdefault(user, []).append(data)
+
+        return {'message': 'Added to favourites', 'data':data}, 201
+
+    @login_required
+    def delete(self, fav_id):
+        user = session['user']
+
+        if user not in favourites:
+            return {'error':'No favourites found'}, 404
+        
+        original_length = len(favourites[user])
+
+        favourites = [
+            f for f in favourites[user] if f.get('id') != fav_id
+        ]    
 
 # change when other areas are done
 # api for getting and posting reviews
@@ -148,11 +184,14 @@ api.add_resource(MovieAPI,
     '/api/movies/<int:movie_id>'
 )
 
+api.add_resource(FavouriteAPI,
+    '/api/favourites',
+    '/api/favourites/<string:fav_id>'
+)
+
 api.add_resource(ReviewAPI,
     '/api/movies/<int:movie_id>/reviews'
 )
-
-
 
 if __name__ == '__main__':
     app.run(debug = True, host = '0.0.0.0', port = 8000)
