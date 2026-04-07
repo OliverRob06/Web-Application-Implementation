@@ -2,6 +2,8 @@
 {% from 'components/forms.html' import input %}
 {% from 'components/forms.html' import button %}
 {% from 'components/user.html' import movieCard %}
+{% from 'components/user.html' import MovieCardScroll %}
+
 
 
 {% block heading %} 
@@ -13,11 +15,7 @@
 {% endblock %}
 
 {% block content %} 
-    <div class="container-fluid">
-        <div class="d-flex">
-        {% for movie in movies %}
-            {{movieCard("https://image.tmdb.org/t/p/w300" + movie.poster_path, movie.title)}}        
-        {% endfor %}
-        </div>
-    </div>
+    {{ MovieCardScroll(movies) }}
+    {{ MovieCardScroll(movies) }}
+
 {% endblock %}
