@@ -1,0 +1,22 @@
+{% macro movieCard(id="" ,src ="",MovieName ="") %}
+<a href="{{ url_for('movie_page', movie_id=id) }}">
+    <div class="card movieCard">
+        <img class="card-img" src="{{ src if src else url_for('static', filename='images/moviePlaceholder.png') }}" alt="{{MovieName}}" />
+        <div class="card-body  movieTitle">
+            <h4 class="card-title">{{MovieName}}</h4>
+        </div>
+    </div>
+</a>
+{% endmacro %}
+
+
+{% macro MovieCardScroll(movies) %}
+    <div class="container-fluid">
+        <h2 class="scrollHeading">Because you liked movie</h2>
+        <div class="d-flex scroll">
+            {% for movie in movies %}
+                {{ movieCard(movie.id , "https://image.tmdb.org/t/p/w300" ~ movie.poster_path, movie.title) }}
+            {% endfor %}
+        </div>
+    </div>
+{% endmacro %}

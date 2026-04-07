@@ -36,6 +36,19 @@ def search_movies_tmdb(query):
 
     return response.json().get("results", [])
 
+def fetch_movie_credits(movie_id):
+    url = f"{BASE_URL}/movie/{movie_id}/credits"
+
+    params = {
+        "api_key": TMDB_API_KEY
+    }
+
+    response = requests.get(url, params=params)
+
+    if response.status_code != 200:
+        return None
+
+    return response.json()
 
 def get_recommendations(movie_id):
     url = f"{BASE_URL}/movie/{movie_id}/recommendations"
@@ -46,4 +59,35 @@ def get_recommendations(movie_id):
     if response.status_code != 200:
         return []
 
-    return response.json().get("results", [])
+    results = response.json().get("results", [])
+
+    cleaned = []
+    for movie in results:
+        cleaned.append({
+            "id": movie.get("id"),
+            "title": movie.get("title"),
+            "poster_path": movie.get("poster_path")
+        })
+
+    return cleaned
+
+def get_top_rated_movies():
+    url = f"{BASE_URL}/movie/top_rated"
+    params = {"api_key": TMDB_API_KEY, "language": "en-US", "page": 1}
+    
+    response = requests.get(url, params=params)
+
+    if response.status_code != 200:
+        return []
+
+    results = response.json().get("results", [])
+    
+    cleaned = []
+    for movie in results:
+        cleaned.append({
+            "id": movie.get("id"),
+            "title": movie.get("title"),
+            "poster_path": movie.get("poster_path")
+        })
+
+    return cleaned

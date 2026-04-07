@@ -1,27 +1,19 @@
-database things
 
-login to work based on admin and users
 
-api calls (rolebased)
+error codes matching 
 
-api from tmbd
-apis:
-    user:
-        get movies info(tmbd)
-        search (tmbd)
-        crud favourites
-        get recommendations
-        add review
-        get reviews
-        add rating
-        get rating
-        delete report(unsure)
-        report other reviews
-    admin:
-        get reports
-        delete reports
-        update movie information
-        
+database for favourites, reports and user information
+
+admin pages
+
+Eddie:
+actors images
+
+genres
+
+get favourites to cards
+
+search to work
 
         
 

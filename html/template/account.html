@@ -1,6 +1,21 @@
 {% extends 'layout/base.html' %}
+{% from 'components/forms.html' import input %}
+{% from 'components/forms.html' import button %}
+{% from 'components/user.html' import movieCard %}
+{% from 'components/user.html' import MovieCardScroll %}
+
+
+
+{% block heading %} 
+    Welcome, {{ session['user'] }}!
+{% endblock %}
+
+{% block heading2 %} 
+    <form action="{{ url_for('logout') }}" method="POST">
+       {{button('logout','submit','Log Out','filterButton btn')}} 
+    </form>
+
+{% endblock %}
 
 {% block content %} 
-<h1> ACCOUNT PAGE TEST</h1>
-
 {% endblock %}

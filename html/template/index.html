@@ -3,10 +3,22 @@
 
 {% block title %}7Movies{% endblock %}
 
+
+{% block heading %} 
+    7Movies
+{% endblock %}
+
+{% block heading2 %} 
+	<img class = "logo offset-7" src="{{ url_for('static', filename='images/7movieslogo.png') }}" alt="image">
+{% endblock %}
+
     {% block content %}
-            <div class="container">
+            <div class="container-fluid">
                 <div class="row justify-content-center text-center my-5">
-                    <div class="col-lg-6">
+                    <div class="col-lg-4">
+                        <div class="loginHeading">
+                            <h1>7Movies</h1>   
+                        </div>
                             {{navButton('Log In','login','big_button btn')}}
                             {{navButton('Sign Up','signup','big_button btn')}}
                     </div>

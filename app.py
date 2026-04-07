@@ -1,8 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_restful import Api, Resource
 from auth import ADMIN_PASSWD, login_required, admin_required
-from tmdb import fetch_movie, search_movies_tmdb, get_recommendations
+from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recommendations ,get_top_rated_movies
 import requests
+import random
 import os
 import uuid
 
@@ -12,16 +13,18 @@ app = Flask(__name__, template_folder = "html/template", static_folder = "static
 app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
 api = Api(app)
 
-# Put this at the top of your file with other configs
-TMDB_API_KEY = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0ODRhNDk1ZDFmMTAyZjAzZjVjYjM0NWI4NzQxMGVhYSIsIm5iZiI6MTc3MTQxOTEwNy45MjgsInN1YiI6IjY5OTViNWUzYTFmOTM0YTAyYzFiMDQyMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.KwN2nJwtB5yWFINVYr3i3rBx6RXZi0wCqttqMVVZJFc"
-TMDB_BASE_URL = "https://api.themoviedb.org/3"
-
 # normie user logins before database
 users_db = {
     'john': 'password123',
     'jane': 'securepass',
 }
-favourites = {}
+favourites = {
+    'john': [
+        {'movie_id': 1493859},
+        {'movie_id': 500},
+        {'movie_id': 1084242}
+    ]
+}
 reviews = []
 ratings = {}
 reports = []
@@ -60,7 +63,7 @@ def login():
 
     return render_template('login.html')
 
-@app.route('/logout')
+@app.route('/logout', methods=['POST'])
 def logout():
     session.clear()
     return redirect(url_for('index'))
@@ -86,15 +89,76 @@ def signup():
 @app.route('/home')
 @login_required
 def home():
-    if session.get('role') == 'admin':
-        return render_template('admin_search.html')  # Admin's home page
+    # get favourited movei and compile recommendations into a list and randomise it
+    user = session['user']
+    user_favs = favourites.get(user, [])
+
+    if not user_favs:
+        movies = get_top_rated_movies()
+    
     else:
-        return render_template('home.html')
+        all_recommended = []
+        for fav_movie in favourites[user]:
+            movie_id = fav_movie.get('movie_id')
+            if movie_id:
+                recommended = get_recommendations(movie_id)
+                all_recommended.extend(recommended)
+
+        seen = set()
+        unique_recommended = []
+        for movie in all_recommended:
+            if movie['id'] not in seen:
+                seen.add(movie['id'])
+                unique_recommended.append(movie)
+
+        random.shuffle(unique_recommended)
+        movies = unique_recommended[:20]
+
+    formatted_movies = []
+    for m in movies:
+        formatted_movies.append({
+            "id": m.get("id"),
+            "title": m.get("title"),
+            "poster_path": f"https://image.tmdb.org/t/p/w300{m.get('poster_path')}" if m.get("poster_path") else None
+        })
+    
+    if session.get('role') == 'admin':
+        return render_template('admin_search.html')
+    else:
+        return render_template('home.html', movies=formatted_movies)
 
 @app.route('/account')
 @login_required
 def account():
     return render_template('account.html')
+
+@app.route('/movie/<int:movie_id>')
+@login_required
+def movie_page(movie_id):
+    movie = fetch_movie(movie_id)
+    credits = fetch_movie_credits(movie_id)
+
+    if not movie or not credits:
+        return "Movie not found", 404
+    
+    cast = credits.get('cast', [])
+    crew = credits.get('crew', [])
+
+    # 5 actors
+    actors = [c['name'] for c in cast [:5]] 
+    directors = [c['name'] for c in crew if c['job']=='Director']
+    writers = [
+        c['name'] for c in crew 
+        if c['job'] in ['Writer', 'Screenplay', 'Story']
+    ]
+
+    return render_template(
+        'info.html',
+        movie=movie,
+        actors=actors,
+        directors=directors,
+        writers=writers
+    )
 
 # change when other areas are done
 # api for searching movies, else return all movies
