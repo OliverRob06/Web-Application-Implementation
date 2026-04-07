@@ -16,7 +16,7 @@
     <div class="container-fluid">
         <div class="d-flex">
         {% for movie in movies %}
-            {{movieCard(movie.poster, movie.title)}}
+            {{movieCard("https://image.tmdb.org/t/p/w200" + movie.poster_path, movie.title)}}        
         {% endfor %}
         </div>
     </div>

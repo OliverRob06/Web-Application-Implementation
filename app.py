@@ -82,14 +82,8 @@ def signup():
 @app.route('/home')
 @login_required
 def home():
-    movies = [
-        {'title': 'Django Unchained', 'poster': 'images/moviePlaceholder.png'},
-        {'title': 'Baby Driver', 'poster': 'images/moviePlaceholder.png'},
-        {'title': 'Shrek', 'poster': 'images/moviePlaceholder.png'},
-        {'title': 'The Hunger Games: Catching Fire', 'poster': 'images/moviePlaceholder.png'},
-        {'title': 'The Hunger Games', 'poster': 'images/moviePlaceholder.png'},
-        {'title': 'The Hunger Games', 'poster': 'images/moviePlaceholder.png'},
-    ]
+    # get favourited movei and compile recommendations into a list and randomise it
+    movies = get_recommendations(500)
 
     if session.get('role') == 'admin':
         return render_template('admin_search.html')

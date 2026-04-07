@@ -59,4 +59,14 @@ def get_recommendations(movie_id):
     if response.status_code != 200:
         return []
 
-    return response.json().get("results", [])
+    results = response.json().get("results", [])
+
+    cleaned = []
+    for movie in results:
+        cleaned.append({
+            "id": movie.get("id"),
+            "title": movie.get("title"),
+            "poster_path": movie.get("poster_path")
+        })
+
+    return cleaned
