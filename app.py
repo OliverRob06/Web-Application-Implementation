@@ -2,12 +2,33 @@ from flask import Flask, render_template, request, redirect, url_for, session
 from flask_restful import Api, Resource
 from auth import ADMIN_PASSWD, login_required, admin_required
 from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recommendations ,get_top_rated_movies
+from flask_sqlalchemy import SQLAlchemy
 import requests
 import random
 import os
 import uuid
 
 app = Flask(__name__, template_folder = "html/template", static_folder = "static")
+
+
+#store database inside the project directory
+db_folder = os.path.join(os.getcwd(), "database")
+db_path = os.path.join(db_folder, "database.db")
+
+#ensure the database directory exists
+os.makedirs(db_folder, exist_ok = True)
+
+#configuring SQL database
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+#creating tables
+def create_tables():
+    with app.app_context():
+        db.create_all()
+        print(f"Database created at {db_path}")
+
 
 #cookie - if anyone is logged in 
 app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
