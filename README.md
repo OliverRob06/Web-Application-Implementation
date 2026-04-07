@@ -18,3 +18,5 @@ Flask
 Flask-RESTful
 Flask-SQLAlchmey
 requests
+
+pip install Flask Flask-RESTful Flask-SQLAlchemy requests
