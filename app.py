@@ -23,6 +23,27 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+
+class Users(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    username = db.Column(db.String(20),nullable = False)
+    password = db.Column(db.Password(20), nullable = False)
+
+
+class Reviews(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    content = db.Column(db.String(10000), nullable = False)
+    #foreign key Links To Users
+    user_id = db.Column(db.Integer, db.ForeignKey('Users.id'), nullable = False)
+
+class Favourites(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    #foreign keys to link to user and movie
+    user_id = db.Column(db.Integer, db.ForeignKey('Users.id'), nullable = False)
+    #movie_id = db.Column(db.Integer, db.ForeignKey('Movies.id'), nullable = False)
+
+
+
 #creating tables
 def create_tables():
     with app.app_context():
@@ -319,4 +340,5 @@ api.add_resource(AdminReportAPI,
 )
 
 if __name__ == '__main__':
+    create_tables()
     app.run(debug = True, host = '0.0.0.0', port = 8000)
