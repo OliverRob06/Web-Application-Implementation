@@ -1,5 +1,5 @@
 body {
-	background-color: #FAFAEB;
+	background-color: #FCFCF4;
 	overflow-x: hidden;
 }
 
@@ -14,12 +14,36 @@ body {
 	margin: 8px 8px 8px 8px;
 }
 
+
+
+
+.d-flex{
+	flex-wrap: nowrap;
+	overflow-x: auto
+}
+
+
 .movieCard{
-	width: 200px;
-	height: 400px;
+	width: 250px;
+	height: 500px;
 	margin: 24px;   
 	padding: 0px;
 	flex: 0 0 auto;
+
+}
+
+.card{
+	border: 0px;
+	background-color: #FAFAEB;
+	box-shadow: 0 3px 15px rgba(0, 0, 0, 0.25);
+	transition:  background-color 0.2s ease,transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover{
+	background-color: #f9f9e2;
+	transform: translateY(-4px);
+		color: black;
+	box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
 }
 
 .movieTitle{
@@ -29,26 +53,27 @@ body {
 	display: flex;
     align-items: center; /* Vertical centering */
     justify-content: center; /* Horizontal centering (optional) */
-}
-
-.d-flex{
-	flex-wrap: nowrap;
-	overflow-x: auto
+	/* font-family: Copperplate, "Copperplate Gothic Light", fantasy; */
+	border-top: 1px solid black;
 }
 
 .card-img{
 	width: 100%;
-	height: 300px;   
+	height: 100%;   
 	object-fit: cover;
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
 }
 
 nav {
-    position: sticky;
     top: 0;
+	width: 100%;
+	position: fixed;
 	background-color: #BBE19F;
     color: black;
     z-index: 100;  
 	height: 75px;
+	box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
 }
 
 .navInput {
@@ -171,9 +196,13 @@ input {
 }
 
 h1 {
-font-family: Copperplate, "Copperplate Gothic Light", fantasy;
+	font-family: Copperplate, "Copperplate Gothic Light", fantasy;
 	font-weight: 400;
 	font-size: 68px;
+}
+
+h2{
+	font-family: Copperplate, "Copperplate Gothic Light", fantasy;
 }
 
 
@@ -189,3 +218,6 @@ font-family: Copperplate, "Copperplate Gothic Light", fantasy;
 	margin: 0px 0px 0px 0px;
 }
 
+a{
+	text-decoration: none;
+}
