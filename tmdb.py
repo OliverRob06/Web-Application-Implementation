@@ -36,6 +36,19 @@ def search_movies_tmdb(query):
 
     return response.json().get("results", [])
 
+def fetch_movie_credits(movie_id):
+    url = f"{BASE_URL}/movie/{movie_id}/credits"
+
+    params = {
+        "api_key": TMDB_API_KEY
+    }
+
+    response = requests.get(url, params=params)
+
+    if response.status_code != 200:
+        return None
+
+    return response.json()
 
 def get_recommendations(movie_id):
     url = f"{BASE_URL}/movie/{movie_id}/recommendations"
