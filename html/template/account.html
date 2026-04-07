@@ -11,7 +11,10 @@
 {% endblock %}
 
 {% block heading2 %} 
-	{{button('logout','submit','Log Out','filterButton btn')}}
+    <form action="{{ url_for('logout') }}" method="POST">
+       {{button('logout','submit','Log Out','filterButton btn')}} 
+    </form>
+
 {% endblock %}
 
 {% block content %} 
