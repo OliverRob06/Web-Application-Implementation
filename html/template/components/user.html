@@ -1,0 +1,9 @@
+{% macro movieCard(src ="",MovieName ="") %}
+    
+<div class="card text-start">
+    <img class="card-img" src="{{ url_for('static', filename='images/7movieslogo.png') }}" alt="{{MovieName}}" />
+    <div class="card-body">
+        <h4 class="card-title">{{MovieName}}</h4>
+    </div>
+</div>
+{% endmacro %}
