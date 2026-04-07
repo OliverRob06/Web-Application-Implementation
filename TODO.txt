@@ -9,6 +9,9 @@ admin pages
 Eddie:
 actors images
 
+genres
+
+
 search to work
 
 recemmendation based on  favourites

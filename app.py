@@ -1,8 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_restful import Api, Resource
 from auth import ADMIN_PASSWD, login_required, admin_required
-from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recommendations
+from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recommendations ,get_top_rated_movies
 import requests
+import random
 import os
 import uuid
 
@@ -17,7 +18,13 @@ users_db = {
     'john': 'password123',
     'jane': 'securepass',
 }
-favourites = {}
+favourites = {
+    'john': [
+        {'movie_id': 1493859},
+        {'movie_id': 500},
+        {'movie_id': 1084242}
+    ]
+}
 reviews = []
 ratings = {}
 reports = []
@@ -83,12 +90,42 @@ def signup():
 @login_required
 def home():
     # get favourited movei and compile recommendations into a list and randomise it
-    movies = get_recommendations(500)
+    user = session['user']
+    user_favs = favourites.get(user, [])
 
+    if not user_favs:
+        movies = get_top_rated_movies()
+    
+    else:
+        all_recommended = []
+        for fav_movie in favourites[user]:
+            movie_id = fav_movie.get('movie_id')
+            if movie_id:
+                recommended = get_recommendations(movie_id)
+                all_recommended.extend(recommended)
+
+        seen = set()
+        unique_recommended = []
+        for movie in all_recommended:
+            if movie['id'] not in seen:
+                seen.add(movie['id'])
+                unique_recommended.append(movie)
+
+        random.shuffle(unique_recommended)
+        movies = unique_recommended
+
+    formatted_movies = []
+    for m in movies:
+        formatted_movies.append({
+            "id": m.get("id"),
+            "title": m.get("title"),
+            "poster_path": f"https://image.tmdb.org/t/p/w300{m.get('poster_path')}" if m.get("poster_path") else None
+        })
+    
     if session.get('role') == 'admin':
         return render_template('admin_search.html')
     else:
-        return render_template('home.html', movies=movies)
+        return render_template('home.html', movies=formatted_movies)
 
 @app.route('/account')
 @login_required

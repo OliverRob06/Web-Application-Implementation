@@ -70,3 +70,24 @@ def get_recommendations(movie_id):
         })
 
     return cleaned
+
+def get_top_rated_movies():
+    url = f"{BASE_URL}/movie/top_rated"
+    params = {"api_key": TMDB_API_KEY, "language": "en-US", "page": 1}
+    
+    response = requests.get(url, params=params)
+
+    if response.status_code != 200:
+        return []
+
+    results = response.json().get("results", [])
+    
+    cleaned = []
+    for movie in results:
+        cleaned.append({
+            "id": movie.get("id"),
+            "title": movie.get("title"),
+            "poster_path": movie.get("poster_path")
+        })
+
+    return cleaned
