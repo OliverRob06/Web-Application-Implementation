@@ -113,7 +113,6 @@ def movie_page(movie_id):
     writers = [
         c['name'] for c in crew 
         if c['job'] in ['Writer', 'Screenplay', 'Story']
-        
     ]
 
     return render_template(
