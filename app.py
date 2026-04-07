@@ -1,8 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_restful import Api, Resource
-from auth import ADMIN_PASSWD, admin_required
+from auth import ADMIN_PASSWD, login_required, admin_required
+from tmdb import fetch_movie, search_movies_tmdb, get_recommendations
+import requests
 import os
-from functools import wraps
 import uuid
 
 app = Flask(__name__, template_folder = "html/template", static_folder = "static")
@@ -20,15 +21,6 @@ favourites = {}
 reviews = []
 ratings = {}
 reports = []
-
-#if the user isnt logged in send user to index.html
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user' not in session:
-            return redirect(url_for('index'))
-        return f(*args, **kwargs)
-    return decorated_function
 
 @app.route('/')
 def index():
@@ -100,20 +92,68 @@ def home():
 def account():
     return render_template('account.html')
 
+@app.route('/movie/<int:movie_id>')
+@login_required
+def movie_page(movie_id):
+    movie = fetch_movie(movie_id)
+
+    if not movie:
+        return "Movie not found", 404
+    
+    return render_template('info.html', movie=movie)
+
 # change when other areas are done
 # api for searching movies, else return all movies
 class MovieAPI(Resource):
     @login_required
     def get(self, movie_id=None):
         if movie_id:
-            return {'message': f'Get movie {movie_id}'}, 200
+            movie = fetch_movie(movie_id)
+            if not movie:
+                return {'error':'Movie not found'}, 404
+            return movie, 200
         
         query = request.args.get('q')
         if query:
-            return {'message': f'Search for {query}'}, 200
+            results = search_movies_tmdb(query)
+            return {'results':results}, 200
         
-        return {'message':'All movies'}, 200
+        return {'error':'No query provided'}, 400
     
+# change when other areas are done
+# api for getting, posting and deleteing favourites
+class FavouriteAPI(Resource):
+    @login_required
+    def get(self):
+        user = session['user']
+        return {'favourites': favourites.get(user, [])}, 200
+        
+    @login_required
+    def post(self):
+        user = session['user']
+        data = request.json
+
+        if not data:
+            return {'error': 'No data provided'}
+        
+        data['id'] = str(uuid.uuid4())
+
+        favourites.setdefault(user, []).append(data)
+
+        return {'message': 'Added to favourites', 'data':data}, 201
+
+    @login_required
+    def delete(self, fav_id):
+        user = session['user']
+
+        if user not in favourites:
+            return {'error':'No favourites found'}, 404
+        
+        original_length = len(favourites[user])
+
+        favourites = [
+            f for f in favourites[user] if f.get('id') != fav_id
+        ]    
 
 # change when other areas are done
 # api for getting and posting reviews
@@ -135,6 +175,42 @@ class ReviewAPI(Resource):
 
         return {'message':'Review added'}, 200
 
+# change when other areas are done
+# api for rating movies
+class RatingAPI(Resource):
+    @login_required
+    def get(self, movie_id):
+        user = session['user']
+        return {'rating': ratings.get(user,{}).get(movie_id)}, 200
+    
+    @login_required
+    def post(self, movie_id):
+        user = session['user']
+        data = request.json
+
+        ratings.setdefault(user, {})[movie_id] = data.get('rating')
+        return {'message': 'Rating saved'}, 201
+
+# change when other areas are done
+# api for admins reviewing reported reviews
+class AdminReportAPI(Resource):
+    @login_required
+    def get(self):
+        if session.get('role') != 'admin':
+            return {"error": "Forbidden"}, 403
+
+        return {"reports": reports}, 200
+
+    @login_required
+    def delete(self, report_id):
+        if session.get('role') != 'admin':
+            return {"error": "Forbidden"}, 403
+
+        global reports
+        reports = [r for r in reports if r.get("id") != report_id]
+
+        return {"message": "Deleted"}, 200
+
 @app.route('/api/admin/test')
 @admin_required
 def admin_secret():
@@ -145,11 +221,23 @@ api.add_resource(MovieAPI,
     '/api/movies/<int:movie_id>'
 )
 
+api.add_resource(FavouriteAPI,
+    '/api/favourites',
+    '/api/favourites/<string:fav_id>'
+)
+
 api.add_resource(ReviewAPI,
     '/api/movies/<int:movie_id>/reviews'
 )
 
+api.add_resource(RatingAPI,
+    '/api/movies/<int:movie_id>/rating'
+)
 
+api.add_resource(AdminReportAPI,
+    '/api/admin/reports',
+    '/api/admin/reports/<string:report_id>'
+)
 
 if __name__ == '__main__':
     app.run(debug = True, host = '0.0.0.0', port = 8000)
