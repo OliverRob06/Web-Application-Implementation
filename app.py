@@ -82,10 +82,19 @@ def signup():
 @app.route('/home')
 @login_required
 def home():
+    movies = [
+        {'title': 'Django Unchained', 'poster': 'images/moviePlaceholder.png'},
+        {'title': 'Baby Driver', 'poster': 'images/moviePlaceholder.png'},
+        {'title': 'Shrek', 'poster': 'images/moviePlaceholder.png'},
+        {'title': 'The Hunger Games: Catching Fire', 'poster': 'images/moviePlaceholder.png'},
+        {'title': 'The Hunger Games', 'poster': 'images/moviePlaceholder.png'},
+        {'title': 'The Hunger Games', 'poster': 'images/moviePlaceholder.png'},
+    ]
+
     if session.get('role') == 'admin':
-        return render_template('admin_search.html')  # Admin's home page
+        return render_template('admin_search.html')
     else:
-        return render_template('home.html')
+        return render_template('home.html', movies=movies)
 
 @app.route('/account')
 @login_required

@@ -13,5 +13,11 @@
 {% endblock %}
 
 {% block content %} 
-        {{movieCard('images/7movieslogo.png','DJango Unchained')}}
+    <div class="container-fluid">
+        <div class="d-flex">
+        {% for movie in movies %}
+            {{movieCard(movie.poster, movie.title)}}
+        {% endfor %}
+        </div>
+    </div>
 {% endblock %}

@@ -14,9 +14,31 @@ body {
 	margin: 8px 8px 8px 8px;
 }
 
+.movieCard{
+	width: 300px;
+	height: 500px;
+	margin: 24px;   
+	padding: 0px;
+	flex: 0 0 auto;
+}
+
+.movieTitle{
+	text-align: center;
+	height: 100px;
+	font-size:100%;
+	display: flex;
+    align-items: center; /* Vertical centering */
+    justify-content: center; /* Horizontal centering (optional) */
+}
+
+.d-flex{
+	flex-wrap: nowrap;
+	overflow-x: auto
+}
+
 .card-img{
-	width: 200px;
-	height: 300px;
+	width: 300px;
+	height: 400px;   
 }
 
 nav {
