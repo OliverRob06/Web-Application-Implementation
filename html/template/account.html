@@ -1,6 +1,18 @@
 {% extends 'layout/base.html' %}
+{% from 'components/forms.html' import input %}
+{% from 'components/forms.html' import button %}
+{% from 'components/user.html' import movieCard %}
+{% from 'components/user.html' import MovieCardScroll %}
+
+
+
+{% block heading %} 
+    Account
+{% endblock %}
+
+{% block heading2 %} 
+	{{button('logout','submit','Log Out','filterButton btn')}}
+{% endblock %}
 
 {% block content %} 
-<h1> ACCOUNT PAGE TEST</h1>
-
 {% endblock %}
