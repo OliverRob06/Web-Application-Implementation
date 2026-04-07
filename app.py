@@ -12,10 +12,6 @@ app = Flask(__name__, template_folder = "html/template", static_folder = "static
 app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
 api = Api(app)
 
-# Put this at the top of your file with other configs
-TMDB_API_KEY = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0ODRhNDk1ZDFmMTAyZjAzZjVjYjM0NWI4NzQxMGVhYSIsIm5iZiI6MTc3MTQxOTEwNy45MjgsInN1YiI6IjY5OTViNWUzYTFmOTM0YTAyYzFiMDQyMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.KwN2nJwtB5yWFINVYr3i3rBx6RXZi0wCqttqMVVZJFc"
-TMDB_BASE_URL = "https://api.themoviedb.org/3"
-
 # normie user logins before database
 users_db = {
     'john': 'password123',
@@ -95,6 +91,16 @@ def home():
 @login_required
 def account():
     return render_template('account.html')
+
+@app.route('/movie/<int:movie_id>')
+@login_required
+def movie_page(movie_id):
+    movie = fetch_movie(movie_id)
+
+    if not movie:
+        return "Movie not found", 404
+    
+    return render_template('info.html', movie=movie)
 
 # change when other areas are done
 # api for searching movies, else return all movies
