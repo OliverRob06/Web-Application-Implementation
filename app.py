@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_restful import Api, Resource
 from auth import ADMIN_PASSWD, login_required, admin_required
-from tmdb import fetch_movie, search_movies_tmdb, get_recommendations
+from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recommendations
 import requests
 import os
 import uuid
@@ -96,11 +96,30 @@ def account():
 @login_required
 def movie_page(movie_id):
     movie = fetch_movie(movie_id)
+    credits = fetch_movie_credits(movie_id)
 
-    if not movie:
+    if not movie or not credits:
         return "Movie not found", 404
     
-    return render_template('info.html', movie=movie)
+    cast = credits.get('cast', [])
+    crew = credits.get('crew', [])
+
+    # 5 actors
+    actors = [c['name'] for c in cast [:5]] 
+    directors = [c['name'] for c in crew if c['job']=='Director']
+    writers = [
+        c['name'] for c in crew 
+        if c['job'] in ['Writer', 'Screenplay', 'Story']
+        
+    ]
+
+    return render_template(
+        'info.html',
+        movie=movie,
+        actors=actors,
+        directors=directors,
+        writers=writers
+    )
 
 # change when other areas are done
 # api for searching movies, else return all movies
