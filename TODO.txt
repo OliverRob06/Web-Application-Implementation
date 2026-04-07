@@ -11,11 +11,9 @@ actors images
 
 genres
 
+get favourites to cards
 
 search to work
-
-recemmendation based on  favourites
-
 
         
 
