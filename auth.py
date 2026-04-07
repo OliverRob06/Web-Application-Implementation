@@ -6,7 +6,6 @@ import hmac
 #ADMIN PLACEHOLDER PASSWORD
 ADMIN_PASSWD = os.environ.get("ADMIN_PASSWD", "adminkey")
 
-
 def check_string(input_string, target_string):
     # more secure comparison
     return hmac.compare_digest(input_string, target_string)
@@ -25,8 +24,6 @@ def login_required(f):
         return f(*args, **kwargs)
     
     return decorated_function
-
-
 
 def admin_required(f):
     @wraps(f)
