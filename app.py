@@ -112,7 +112,7 @@ def home():
                 unique_recommended.append(movie)
 
         random.shuffle(unique_recommended)
-        movies = unique_recommended
+        movies = unique_recommended[:20]
 
     formatted_movies = []
     for m in movies:
