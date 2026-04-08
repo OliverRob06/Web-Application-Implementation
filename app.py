@@ -105,10 +105,13 @@ def deleteUser(username: str):
     
 
 #CRUD STATMENTS FAVOURITES
+@app.route('/favourite/add/<int:movieid>', methods=['POST'])
 def addFavourite(userid: int, movieid: int):
+    print("attempting to add favourite")
     new_favourite = testfavourites(userID = userid, movieID = movieid)
     db.session.add(new_favourite)
     db.session.commit()
+    print("added favourite")
     return redirect(url_for('movie', movieid=movieid))
 
 def removeFavourite(userid: int, movieid: int):
@@ -245,7 +248,7 @@ def home():
 def account():
     return render_template('account.html')
 
-@app.route('/movie/<int:movie_id>')
+@app.route('/movie/<int:movie_id>', methods = ['GET','POST'])
 @login_required
 def movie_page(movie_id):
     movie = fetch_movie(movie_id)
@@ -275,6 +278,10 @@ def movie_page(movie_id):
     
     genres = movie.get('genres')
     genre_name = [c['name'] for c in genres]
+
+    user = session['user']
+    if request.method == 'POST':
+        addFavourite(user.user_id, movie_id)
 
     return render_template(
         'info.html',
