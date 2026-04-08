@@ -11,30 +11,38 @@
 <p><strong>Rating:</strong> ⭐ {{ movie.vote_average }}</p>
 
 {% if movie.poster_path %}
-    <img src="https://image.tmdb.org/t/p/w200{{ movie.poster_path }}">
+<img src="https://image.tmdb.org/t/p/w200{{ movie.poster_path }}">
 {% endif %}
 
 <hr>
 
 <h3>Director</h3>
 <p>
-{% for d in directors %}
-    {{ d }}{% if not loop.last %}, {% endif %}
-{% endfor %}
+	{% for d in directors %}
+	{{ d }}{% if not loop.last %}, {% endif %}
+	{% endfor %}
 </p>
 
 <h3>Writers</h3>
 <p>
-{% for w in writers %}
-    {{ w }}{% if not loop.last %}, {% endif %}
-{% endfor %}
+	{% for w in writers %}
+	{{ w }}{% if not loop.last %}, {% endif %}
+	{% endfor %}
 </p>
 
 <h3>Cast</h3>
 <p>
-{% for a in actors %}
-    {{ a }}{% if not loop.last %}, {% endif %}
-{% endfor %}
+	{% for a in actors %}
+	{{ a }}{% if not loop.last %}, {% endif %}
+	{% endfor %}
 </p>
+
+<h3>Genre</h3>
+<p>
+	{% for g in genres %}
+	{{ g }}{% if not loop.last %}, {% endif %}
+	{% endfor %}
+</p>
+
 
 {% endblock %}

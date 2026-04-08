@@ -205,13 +205,17 @@ def movie_page(movie_id):
         c['name'] for c in crew 
         if c['job'] in ['Writer', 'Screenplay', 'Story']
     ]
+    
+    genres = movie.get('genres')
+    genre_name = [c['name'] for c in genres]
 
     return render_template(
         'info.html',
         movie=movie,
         actors=actors,
         directors=directors,
-        writers=writers
+        writers=writers, 
+        genres=genre_name
     )
 
 # change when other areas are done
