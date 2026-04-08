@@ -2,12 +2,66 @@ from flask import Flask, render_template, request, redirect, url_for, session
 from flask_restful import Api, Resource
 from auth import ADMIN_PASSWD, login_required, admin_required
 from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recommendations ,get_top_rated_movies
+from flask_sqlalchemy import SQLAlchemy
 import requests
 import random
 import os
 import uuid
 
 app = Flask(__name__, template_folder = "html/template", static_folder = "static")
+
+
+#store database inside the project directory
+db_folder = os.path.join(os.getcwd(), "database")
+db_path = os.path.join(db_folder, "database.db")
+
+#ensure the database directory exists
+os.makedirs(db_folder, exist_ok = True)
+
+#configuring SQL database
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+
+class users(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    username = db.Column(db.String(20),nullable = False)
+    password = db.Column(db.String(20), nullable = False)
+
+
+class reviews(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    content = db.Column(db.String(10000), nullable = False)
+    #foreign key Links To Users
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable = False)
+
+class favourites(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    #foreign keys to link to user and movie
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable = False)
+    #movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable = False)
+
+class ratings(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    score = db.Column(db.Integer, primary_key = True)
+    #foreign keys to link to user and movie
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable = False)
+    #movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable = False)
+
+class reports(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable = False)
+    #movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable = False)
+
+
+#creating tables
+def create_tables():
+    with app.app_context():
+        db.create_all()
+        print(f"Database created at {db_path}")
+
+create_tables()
 
 #cookie - if anyone is logged in 
 app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
@@ -151,13 +205,17 @@ def movie_page(movie_id):
         c['name'] for c in crew 
         if c['job'] in ['Writer', 'Screenplay', 'Story']
     ]
+    
+    genres = movie.get('genres')
+    genre_name = [c['name'] for c in genres]
 
     return render_template(
         'info.html',
         movie=movie,
         actors=actors,
         directors=directors,
-        writers=writers
+        writers=writers, 
+        genres=genre_name
     )
 
 # change when other areas are done
@@ -298,4 +356,5 @@ api.add_resource(AdminReportAPI,
 )
 
 if __name__ == '__main__':
+    
     app.run(debug = True, host = '0.0.0.0', port = 8000)

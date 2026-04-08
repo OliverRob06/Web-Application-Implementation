@@ -2,7 +2,10 @@
 
 error codes matching 
 
-database for favourites, reports and user information
+database for favourites, reports and user information:
+    link crud statements to the databases to popualte them
+    query for finding all reports for x review and sorting them in order of most reported
+    see if data is being stored effiecvtly for reviews
 
 admin pages
 
@@ -11,11 +14,9 @@ actors images
 
 genres
 
+get favourites to cards
 
 search to work
-
-recemmendation based on  favourites
-
 
         
 
