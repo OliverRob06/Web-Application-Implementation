@@ -38,11 +38,11 @@ class reviews(db.Model):
     #movieID = db.Column(db.Integer, db.ForeignKey('movie_id'), nullable = False)
 
 
-class favourites(db.Model):
+class testfavourites(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     #foreign keys to link to user and movie
-    user_id = db.Column(db.Integer, db.ForeignKey('users_db.id'), nullable = False)
-    #movieID = db.Column(db.Integer, db.ForeignKey('movie_id'), nullable = False)
+    userID = db.Column(db.Integer, db.ForeignKey('users_db.id'), nullable = False)
+    movieID = db.Column(db.Integer, nullable = False)
 
 class ratings(db.Model):
     id = db.Column(db.Integer, primary_key = True)
@@ -67,7 +67,7 @@ create_tables()
 
 
 #CRUD STATEMENTS USERS
-#creates user
+
 def createUser(user: str, password: str):
         new_user = users_db(username=user, password = password)
         db.session.add(new_user)
@@ -103,6 +103,20 @@ def deleteUser(username: str):
     db.session.commit()
     return redirect(url_for('admin_search'))
     
+
+#CRUD STATMENTS FAVOURITES
+def addFavourite(userid: int, movieid: int):
+    new_favourite = testfavourites(userID = userid, movieID = movieid)
+    db.session.add(new_favourite)
+    db.session.commit()
+    return redirect(url_for('movie', movieid=movieid))
+
+def removeFavourite(userid: int, movieid: int):
+    favourite = testfavourites.query.filterby(userID = userid, movieID = movieid).first()
+    if favourite:
+        db.session.delete()
+        db.session.commit()
+    return redirect(url_for('movie', movieid=movieid))
 
 
 
