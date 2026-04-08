@@ -42,12 +42,13 @@
                 {% endfor %}
             </p>
 
-            <h3>Genres</h3>
+            <h3>Genre</h3>
             <p>
-                {% for w in writers %}
-                    {{ w }}{% if not loop.last %}, {% endif %}
+                {% for g in genres %}
+                {{ g }}{% if not loop.last %}, {% endif %}
                 {% endfor %}
             </p>
+
         </div>
         <div class="col-6 ">
 
@@ -55,28 +56,7 @@
 
             {{ actorCardScroll(actors) }}
         </div>
-    </div>
+    
 </div>
-
-
-
-<hr>
-
-
-
-<h3>Cast</h3>
-<p>
-	{% for a in actors %}
-	{{ a }}{% if not loop.last %}, {% endif %}
-	{% endfor %}
-</p>
-
-<h3>Genre</h3>
-<p>
-	{% for g in genres %}
-	{{ g }}{% if not loop.last %}, {% endif %}
-	{% endfor %}
-</p>
-
 
 {% endblock %}
