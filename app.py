@@ -128,6 +128,9 @@ def signup():
         user = request.form.get('Username')
         pw = request.form.get('Password')
         
+        print("Creating new users with username:", user, "password", pw)
+
+
         # Check if user already exists
         existing_user = users_db.query.filter_by(username = user).first()
         if existing_user:
