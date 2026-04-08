@@ -15,7 +15,10 @@ body {
 }
 
 
-
+.infoPoster{
+	width: 300px;
+	height: 450px;
+}
 
 .d-flex{
 	flex-wrap: nowrap;
@@ -29,8 +32,16 @@ body {
 	margin: 24px;   
 	padding: 0px;
 	flex: 0 0 auto;
-
 }
+
+.actorCard{
+	width: 150px;
+	height: 200px;
+	margin: 24px;   
+	padding: 0px;
+	flex: 0 0 auto;
+}
+
 
 .card{
 	border: 0px;
@@ -51,9 +62,9 @@ body {
 	height: 100px;
 	font-size:100%;
 	display: flex;
-    align-items: center; /* Vertical centering */
-    justify-content: center; /* Horizontal centering (optional) */
-	/* font-family: Copperplate, "Copperplate Gothic Light", fantasy; */
+    align-items: center; 
+    justify-content: center; 
+	font-family: Copperplate, "Copperplate Gothic Light", fantasy;
 	border-top: 1px solid black;
 }
 
@@ -190,6 +201,21 @@ input {
 	margin: 0px -25px 0px 25px;
 }
 
+
+.heading2{
+	padding: 25px 0px 25px 0px;
+	margin: 0px 25px 0px -25px;
+}
+
+.heading3{
+	padding: 25px 0px 25px 0px;
+	margin: 0px -25px 0px 25px;
+}
+
+.infoRow{
+	margin: 25px;
+}
+
 .loginHeading{
 	padding: 0;
 	margin: 0;
@@ -201,10 +227,11 @@ h1 {
 	font-size: 68px;
 }
 
+
 h2{
 	font-family: Copperplate, "Copperplate Gothic Light", fantasy;
+	font-size: 36px;
 }
-
 
 
 .row{

@@ -1,34 +1,68 @@
-{% extends 'layout/base.html' %}
+{% extends 'layout/movietemplate.html' %}
+{% from 'components/forms.html' import button %}
+{% from 'components/user.html' import actorCardScroll %}
+
+{% block heading %} 
+    {{ movie.title }}
+{% endblock %}
+
+{% block heading2 %} 
+    {{button('favourite','submit','Favourite','Button btn')}} 
+{% endblock %}
+
+{% block heading3 %} 
+    <h2>{{ movie.vote_average }} /10</h2>
+{% endblock %}
+
 
 {% block content %}
 
-<h1>{{ movie.title }}</h1>
+<div class="container-fluid">
+    <div class="row infoRow">
+        <div class="col-3">
+            {% if movie.poster_path %}
+                <img class="infoPoster" src="https://image.tmdb.org/t/p/w200{{ movie.poster_path }}">
+            {% endif %}
+        </div>
+        <div class="col-3">
 
-<p><strong>Overview:</strong> {{ movie.overview }}</p>
+            <h3>Release Date</h3>
+            <p> {{ movie.release_date }}</p>
+            <h3>Director</h3>
+            <p>
+                {% for d in directors %}
+                    {{ d }}{% if not loop.last %}, {% endif %}
+                {% endfor %}
+            </p>
 
-<p><strong>Release Date:</strong> {{ movie.release_date }}</p>
+            <h3>Writers</h3>
+            <p>
+                {% for w in writers %}
+                    {{ w }}{% if not loop.last %}, {% endif %}
+                {% endfor %}
+            </p>
 
-<p><strong>Rating:</strong> ⭐ {{ movie.vote_average }}</p>
+            <h3>Genres</h3>
+            <p>
+                {% for w in writers %}
+                    {{ w }}{% if not loop.last %}, {% endif %}
+                {% endfor %}
+            </p>
+        </div>
+        <div class="col-6 ">
 
-{% if movie.poster_path %}
-    <img src="https://image.tmdb.org/t/p/w200{{ movie.poster_path }}">
-{% endif %}
+            <p>Overview: {{ movie.overview }}</p>
+
+            {{ actorCardScroll(actors) }}
+        </div>
+    </div>
+</div>
+
+
 
 <hr>
 
-<h3>Director</h3>
-<p>
-{% for d in directors %}
-    {{ d }}{% if not loop.last %}, {% endif %}
-{% endfor %}
-</p>
 
-<h3>Writers</h3>
-<p>
-{% for w in writers %}
-    {{ w }}{% if not loop.last %}, {% endif %}
-{% endfor %}
-</p>
 
 <h3>Cast</h3>
 <p>

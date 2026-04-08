@@ -10,12 +10,33 @@
 {% endmacro %}
 
 
+{% macro actorCard(src ="",Name ="") %}
+    <div class="card actorCard">
+        <img class="card-img" src="{{ src if src else url_for('static', filename='images/moviePlaceholder.png') }}" alt="{{Name}}" />
+        <div class="card-body  movieTitle">
+            <h4 class="card-title">{{Name}}</h4>
+        </div>
+    </div>
+{% endmacro %}
+
+
 {% macro MovieCardScroll(movies) %}
     <div class="container-fluid">
         <h2 class="scrollHeading">Because you liked movie</h2>
         <div class="d-flex scroll">
             {% for movie in movies %}
                 {{ movieCard(movie.id , "https://image.tmdb.org/t/p/w300" ~ movie.poster_path, movie.title) }}
+            {% endfor %}
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro actorCardScroll(actors) %}
+    <div class="container-fluid">
+        <h2 class="scrollHeading">Actors</h2>
+        <div class="d-flex scroll">
+            {% for a in actors %}
+                {{ actorCard( 'images/moviePlaceholder.png' , a.title) }}
             {% endfor %}
         </div>
     </div>
