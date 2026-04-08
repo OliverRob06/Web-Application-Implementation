@@ -1,13 +1,11 @@
 {% macro input(name , type ="text", placeholder="" , class ="") %}
     <div>
-        <form action="">
         <input  
                 name = "{{name}}"
                 type= "{{type}}"
                 placeholder="{{placeholder}}" 
                 class="text-center w-100 {{class}}">
-            </input>
-        </form>
+        </input>
     </div>
 {% endmacro %}
 
