@@ -24,7 +24,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 
-class users(db.Model):
+class users_db(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     username = db.Column(db.String(20),nullable = False)
     password = db.Column(db.String(20), nullable = False)
@@ -34,25 +34,27 @@ class reviews(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     content = db.Column(db.String(10000), nullable = False)
     #foreign key Links To Users
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable = False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users_db.id'), nullable = False)
+    #movieID = db.Column(db.Integer, db.ForeignKey('movie_id'), nullable = False)
+
 
 class favourites(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     #foreign keys to link to user and movie
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable = False)
-    #movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable = False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users_db.id'), nullable = False)
+    #movieID = db.Column(db.Integer, db.ForeignKey('movie_id'), nullable = False)
 
 class ratings(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     score = db.Column(db.Integer, primary_key = True)
     #foreign keys to link to user and movie
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable = False)
-    #movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable = False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users_db.id'), nullable = False)
+    #movieID = db.Column(db.Integer, db.ForeignKey('movie_id'), nullable = False)
 
 class reports(db.Model):
     id = db.Column(db.Integer, primary_key = True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable = False)
-    #movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable = False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users_db.id'), nullable = False)
+    #movieID = db.Column(db.Integer, db.ForeignKey('movie_id'), nullable = False)
 
 
 #creating tables
@@ -67,11 +69,7 @@ create_tables()
 app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
 api = Api(app)
 
-# normie user logins before database
-users_db = {
-    'john': 'password123',
-    'jane': 'securepass',
-}
+
 favourites = {
     'john': [
         {'movie_id': 1493859},
@@ -106,10 +104,12 @@ def login():
             session['user'] = user
             return redirect(url_for('home'))
         
-        elif user in users_db and users_db[user] == pw:
+        db_user = users_db.query.filter_by(username = user).first()
+        
+        if db_user and db_user.password == pw:
             # change when database is done
             session['role'] = 'user'
-            session['user'] = user
+            session['user'] = db_user.username
             return redirect(url_for('home'))
         
         else:
@@ -129,13 +129,15 @@ def signup():
         pw = request.form.get('Password')
         
         # Check if user already exists
-        # change when database is done
-        if user in users_db:
+        existing_user = users_db.query.filter_by(username = user).first()
+        if existing_user:
             return 'Username already exists', 400
         
-        # Add new user
-        # change when database is done
-        users_db[user] = pw
+        
+        #Add new user
+        new_user = users_db(username=user, password = pw)
+        db.session.add(new_user)
+        db.session.commit()
         return redirect(url_for('login'))
     
     return render_template('signup.html')
@@ -199,31 +201,19 @@ def movie_page(movie_id):
     crew = credits.get('crew', [])
 
     # 5 actors
-    actors = [
-        {
-            'name' : c['name'],
-            'profile_path': c.get('profile_path', ''),
-            'id': c.get('id', '')
-        }  
-        for c in cast [:8]
-    ] 
-    
+    actors = [c['name'] for c in cast [:5]] 
     directors = [c['name'] for c in crew if c['job']=='Director']
     writers = [
         c['name'] for c in crew 
         if c['job'] in ['Writer', 'Screenplay', 'Story']
     ]
-    
-    genres = movie.get('genres')
-    genre_name = [c['name'] for c in genres]
 
     return render_template(
         'info.html',
         movie=movie,
         actors=actors,
         directors=directors,
-        writers=writers, 
-        genres=genre_name
+        writers=writers
     )
 
 # change when other areas are done
@@ -362,6 +352,8 @@ api.add_resource(AdminReportAPI,
     '/api/admin/reports',
     '/api/admin/reports/<string:report_id>'
 )
+
+print("DB path:", os.path.abspath(db_path))
 
 if __name__ == '__main__':
     
