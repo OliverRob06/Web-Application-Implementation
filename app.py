@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session
 from flask_restful import Api, Resource
 from auth import ADMIN_PASSWD, login_required, admin_required
 from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recommendations ,get_top_rated_movies
+from flask_sqlalchemy import SQLAlchemy
 import requests
 import random
 import os
@@ -9,15 +10,122 @@ import uuid
 
 app = Flask(__name__, template_folder = "html/template", static_folder = "static")
 
+
+#store database inside the project directory
+db_folder = os.path.join(os.getcwd(), "database")
+db_path = os.path.join(db_folder, "database.db")
+
+#ensure the database directory exists
+os.makedirs(db_folder, exist_ok = True)
+
+#configuring SQL database
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+
+class users_db(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    username = db.Column(db.String(20),nullable = False)
+    password = db.Column(db.String(20), nullable = False)
+
+
+class reviews(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    content = db.Column(db.String(10000), nullable = False)
+    #foreign key Links To Users
+    user_id = db.Column(db.Integer, db.ForeignKey('users_db.id'), nullable = False)
+    #movieID = db.Column(db.Integer, db.ForeignKey('movie_id'), nullable = False)
+
+
+class testfavourites(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    #foreign keys to link to user and movie
+    userID = db.Column(db.Integer, db.ForeignKey('users_db.id'), nullable = False)
+    movieID = db.Column(db.Integer, nullable = False)
+
+class ratings(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    score = db.Column(db.Integer, primary_key = True)
+    #foreign keys to link to user and movie
+    user_id = db.Column(db.Integer, db.ForeignKey('users_db.id'), nullable = False)
+    #movieID = db.Column(db.Integer, db.ForeignKey('movie_id'), nullable = False)
+
+class reports(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users_db.id'), nullable = False)
+    #movieID = db.Column(db.Integer, db.ForeignKey('movie_id'), nullable = False)
+
+
+#creating tables
+def create_tables():
+    with app.app_context():
+        db.create_all()
+        print(f"Database created at {db_path}")
+
+create_tables()
+
+
+#CRUD STATEMENTS USERS
+
+def createUser(user: str, password: str):
+        new_user = users_db(username=user, password = password)
+        db.session.add(new_user)
+        db.session.commit()
+        return redirect(url_for('login'))
+
+
+def updateUser(username: str, newPassword: str = None, newUserName: str = None):
+
+    user = users_db.query.get(username)
+    
+    #check if user exists
+    if not username:
+        return "User not found", 404
+    
+    #update password
+    if newPassword:
+        user.password = newPassword
+    #update username
+    if newUserName:
+        user.username = newUserName
+    db.session.commit()
+    return redirect(url_for('account'))
+
+def deleteUser(username: str):
+
+    user = users_db.query.get(username)
+
+    if not username:
+        return "User not found", 404
+    
+    db.session.delete(user)
+    db.session.commit()
+    return redirect(url_for('admin_search'))
+    
+
+#CRUD STATMENTS FAVOURITES
+def addFavourite(userid: int, movieid: int):
+    new_favourite = testfavourites(userID = userid, movieID = movieid)
+    db.session.add(new_favourite)
+    db.session.commit()
+    return redirect(url_for('movie', movieid=movieid))
+
+def removeFavourite(userid: int, movieid: int):
+    favourite = testfavourites.query.filterby(userID = userid, movieID = movieid).first()
+    if favourite:
+        db.session.delete()
+        db.session.commit()
+    return redirect(url_for('movie', movieid=movieid))
+
+
+
+
 #cookie - if anyone is logged in 
 app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
 api = Api(app)
 
-# normie user logins before database
-users_db = {
-    'john': 'password123',
-    'jane': 'securepass',
-}
+
 favourites = {
     'john': [
         {'movie_id': 1493859},
@@ -52,10 +160,12 @@ def login():
             session['user'] = user
             return redirect(url_for('home'))
         
-        elif user in users_db and users_db[user] == pw:
+        db_user = users_db.query.filter_by(username = user).first()
+        
+        if db_user and db_user.password == pw:
             # change when database is done
             session['role'] = 'user'
-            session['user'] = user
+            session['user'] = db_user.username
             return redirect(url_for('home'))
         
         else:
@@ -74,15 +184,18 @@ def signup():
         user = request.form.get('Username')
         pw = request.form.get('Password')
         
+        print("Creating new users with username:", user, "password", pw)
+
+
         # Check if user already exists
-        # change when database is done
-        if user in users_db:
+        existing_user = users_db.query.filter_by(username = user).first()
+        if existing_user:
             return 'Username already exists', 400
         
-        # Add new user
-        # change when database is done
-        users_db[user] = pw
-        return redirect(url_for('login'))
+        
+        #Add new user
+        createUser(user, pw)
+
     
     return render_template('signup.html')
 
@@ -145,19 +258,31 @@ def movie_page(movie_id):
     crew = credits.get('crew', [])
 
     # 5 actors
-    actors = [c['name'] for c in cast [:5]] 
+    actors = [
+        {
+            'name' : c['name'],
+            'profile_path': c.get('profile_path', ''),
+            'id': c.get('id', '')
+        }  
+        for c in cast [:8]
+    ] 
+    
     directors = [c['name'] for c in crew if c['job']=='Director']
     writers = [
         c['name'] for c in crew 
         if c['job'] in ['Writer', 'Screenplay', 'Story']
     ]
+    
+    genres = movie.get('genres')
+    genre_name = [c['name'] for c in genres]
 
     return render_template(
         'info.html',
         movie=movie,
         actors=actors,
         directors=directors,
-        writers=writers
+        writers=writers, 
+        genres=genre_name
     )
 
 # change when other areas are done
@@ -297,5 +422,8 @@ api.add_resource(AdminReportAPI,
     '/api/admin/reports/<string:report_id>'
 )
 
+print("DB path:", os.path.abspath(db_path))
+
 if __name__ == '__main__':
+    
     app.run(debug = True, host = '0.0.0.0', port = 8000)
