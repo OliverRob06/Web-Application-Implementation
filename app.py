@@ -65,6 +65,48 @@ def create_tables():
 
 create_tables()
 
+
+#CRUD STATEMENTS USERS
+#creates user
+def createUser(user: str, password: str):
+        new_user = users_db(username=user, password = password)
+        db.session.add(new_user)
+        db.session.commit()
+        return redirect(url_for('login'))
+
+
+def updateUser(username: str, newPassword: str = None, newUserName: str = None):
+
+    user = users_db.query.get(username)
+    
+    #check if user exists
+    if not username:
+        return "User not found", 404
+    
+    #update password
+    if newPassword:
+        user.password = newPassword
+    #update username
+    if newUserName:
+        user.username = newUserName
+    db.session.commit()
+    return redirect(url_for('account'))
+
+def deleteUser(username: str):
+
+    user = users_db.query.get(username)
+
+    if not username:
+        return "User not found", 404
+    
+    db.session.delete(user)
+    db.session.commit()
+    return redirect(url_for('admin_search'))
+    
+
+
+
+
 #cookie - if anyone is logged in 
 app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
 api = Api(app)
@@ -138,10 +180,8 @@ def signup():
         
         
         #Add new user
-        new_user = users_db(username=user, password = pw)
-        db.session.add(new_user)
-        db.session.commit()
-        return redirect(url_for('login'))
+        createUser(user, pw)
+
     
     return render_template('signup.html')
 
