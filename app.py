@@ -199,7 +199,15 @@ def movie_page(movie_id):
     crew = credits.get('crew', [])
 
     # 5 actors
-    actors = [c['name'] for c in cast [:5]] 
+    actors = [
+        {
+            'name' : c['name'],
+            'profile_path': c.get('profile_path', ''),
+            'id': c.get('id', '')
+        }  
+        for c in cast [:8]
+    ] 
+    
     directors = [c['name'] for c in crew if c['job']=='Director']
     writers = [
         c['name'] for c in crew 
