@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, flash, render_template, request, redirect, url_for, session, jsonify
 from flask_restful import Api, Resource
 from auth import login_required, admin_required
 from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recommendations ,get_top_rated_movies
@@ -223,6 +223,26 @@ def search():
         return render_template('search.html', movies=[])
 
     return render_template('search.html', movies=results)
+
+@app.route('/movie/add/<int:movie_id>', methods=['POST'])
+@login_required
+def movieapi(movie_id):
+    user_id = session.get('user_id') # Adjust based on how you store user info
+    
+    # 1. Check if it's already in the database to avoid duplicates
+    exists = Favourites.query.filter_by(user_id=user_id, movie_id=movie_id).first()
+    
+    if not exists:
+        # 2. Add to database
+        new_favorite = Favourites(user_id=user_id, movie_id=movie_id)
+        db.session.add(new_favorite)
+        db.session.commit()
+        flash("Movie added to your favorites!")
+    else:
+        flash("Movie is already in your list.")
+
+    # 3. Redirect back to the same movie page
+    return redirect(url_for('movie_page', movie_id=movie_id))
 
 @app.route('/reviews')
 @login_required
@@ -654,6 +674,15 @@ backendApi.add_resource(AdminReportAPI, "/api/reports")
 @admin_required
 def admin_secret():
     return "If you see this, you are an Admin!"
+
+@app.route('/admin_review')
+def admin_review():
+    return redirect(url_for('admin_reveiw'))
+
+@app.route('/admin_search')
+def admin_search():
+    return redirect(url_for('admin_search'))
+
 
 print("DB path:", os.path.abspath(db_path))
 

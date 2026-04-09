@@ -8,19 +8,18 @@
 				<img class="logo" src="{{ url_for('static', filename='images/7movieslogo.png') }}" alt="image">
 			</div>
 			<div class="col-2">
-				{{navButton('Home','home','navButton')}}
+				{{navButton('movies','admin_search','navButton')}}
+			</div>
+            <div class="col-2">
+				{{navButton('reviews','admin_review','navButton')}}
 			</div>
 			<div class="col-1">
 
 			</div>
 			<div class="col-6">
-				<form method="GET" action="{{ url_for('search') }}">
-					{{input('q','text','Search for a movie', 'navInput')}}
-				</form>
-			</div>
+            </div>
 			<div class="col-1">
-				<a href="{{ url_for('account')}}"> <img class="profile"
-						src="{{ url_for('static', filename='images/profile.png') }}"></a>
+				
 			</div>
 		</div>
 	</div>

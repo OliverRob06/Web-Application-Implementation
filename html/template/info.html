@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block heading2 %}
-<form action="{{ url_for('movieapi', movieid=movieid) }}" method="POST">
+<form action="{{ url_for('movieapi', movie_id=movie.id) }}" method="POST">
     <img class="star btn" type="submit" src="{{ url_for('static', filename='images/starHover.png') }}" alt="image">
 </form>
 {% endblock %}
@@ -61,26 +61,26 @@
             {{ actorCardScroll(actors) }}
         </div>
 
-        </div>
+    </div>
 
-        <div class="container-fluid px-0">
-                <div class="row align-items-center">
-                    <div class="col-3 ps-0 pe-2 heading">
-                        <h1>
-                            Reviews
-                        </h1>            
-                    </div>
-                    <div class="col-6 ps-2 pe-2">
-                        {{input('Review','text','Review text here','rateInput')}}
-                    </div>
-                    <div class="col-1">
-                        {{input('rating','number','Rate','rateInput')}}
-                    </div>
-                    <div class="col-2 ps-2 pe-5">
-                        {{button('rate','submit','Submit','big_button btn')}}
-                    </div>
-                </div>
+    <div class="container-fluid px-0">
+        <div class="row align-items-center">
+            <div class="col-3 ps-0 pe-2 heading">
+                <h1>
+                    Reviews
+                </h1>
             </div>
+            <div class="col-6 ps-2 pe-2">
+                {{input('Review','text','Review text here','rateInput')}}
+            </div>
+            <div class="col-1">
+                {{input('rating','number','Rate','rateInput')}}
+            </div>
+            <div class="col-2 ps-2 pe-5">
+                {{button('rate','submit','Submit','big_button btn')}}
+            </div>
+        </div>
+    </div>
 
 
     {{infoReview('reviews','BUngo','Jeff','BLabee bughh be bee blee Labee bughh be bee bleeLabee bughh be bee bleeLabee
