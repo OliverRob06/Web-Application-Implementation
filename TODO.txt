@@ -1,7 +1,7 @@
 
 
 NEED TO REPLACE CURRENT METHODS FOR DATABASE CRUD OPERATIONS: 
-7   (@app.route)
+   (@app.route)
     def login():
 TO RUN THEM THROUGH THE CORRESPONDING APIS
     LoginAPI
