@@ -224,6 +224,46 @@ def search():
 
     return render_template('search.html', movies=results)
 
+@app.route('/editUser')
+@login_required
+def editUser():
+    # Get all reviews from the database
+    all_reviews = Review.query.all()
+
+    # Join with user info to get username
+    reviews_data = []
+    for r in all_reviews:
+        user = User.query.filter_by(id=r.userID).first()
+        reviews_data.append({
+            "title": f"Movie ID: {r.movieID}",  # Or fetch movie title if needed
+            "Aname": user.username if user else "Unknown",
+            "description": r.content,
+            "review": "Reviewed"  # Or show a rating if you want
+        })
+
+    return render_template('admin_review.html', reviews=reviews_data)
+
+
+@app.route('/editPass')
+@login_required
+def editPass():
+    # Get all reviews from the database
+    all_reviews = Review.query.all()
+
+    # Join with user info to get username
+    reviews_data = []
+    for r in all_reviews:
+        user = User.query.filter_by(id=r.userID).first()
+        reviews_data.append({
+            "title": f"Movie ID: {r.movieID}",  # Or fetch movie title if needed
+            "Aname": user.username if user else "Unknown",
+            "description": r.content,
+            "review": "Reviewed"  # Or show a rating if you want
+        })
+
+    return render_template('admin_review.html', reviews=reviews_data)
+
+
 @app.route('/reviews')
 @login_required
 def review():
