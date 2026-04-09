@@ -146,29 +146,21 @@ def signup():
 @app.route('/home')
 @login_required
 def home():
-    user_id = session['user']
-    print(user_id)
-    url = f"http://localhost:8000/api/favourites?userID={user_id}"
-
-    response = requests.get(url)
-    favourites = response.json()
-
-    print(f"Favourites for user {user_id}:")
-    for f in favourites:
-        print(f"MovieID: {f['movieID']}, FavouriteID: {f['id']}")
-
-    print(favourites)
-
-    if not favourites:
+    user = User.query.filter_by(username=session['user']).first()
+    user_id = user.id
+    favourites = Favourites.query.filter_by(userID=user_id).all()
+    
+    favs = [f.movieID for f in favourites]
+    if not favs:
         movies = get_top_rated_movies()
         
+    if not favs:
+        movies = get_top_rated_movies()
     else:
         all_recommended = []
-        for fav_movie in favourites:
-            movie_id = fav_movie.get('movie_id')
-            if movie_id:
-                recommended = get_recommendations(movie_id)
-                all_recommended.extend(recommended)
+        for movie_id in favs:
+            recommended = get_recommendations(movie_id)
+            all_recommended.extend(recommended)
 
         seen = set()
         unique_recommended = []
@@ -280,13 +272,28 @@ class UserAPI(Resource):
 
     #get method retrive all users from database
     def get(self):
-        users = User.query.all()
-        return jsonify([{
+        # Check if username query parameter is provided
+        username = request.args.get('username')
+        
+        if username:
+            # Get specific user by username
+            user = User.query.filter_by(username=username).first()
+            if not user:
+                return {"error": "User not found"}, 404
+            return jsonify({
+                "id": user.id,
+                "username": user.username,
+                "admin": user.admin,
+            })
+        else:
+            # Return all users (original behavior)
+            users = User.query.all()
+            return jsonify([{
                 "id": u.id,
                 "username": u.username,
                 "password": u.password,
                 "admin": u.admin,
-        }for u in users])
+            } for u in users])
     
     #create method
     def post(self):
@@ -373,7 +380,6 @@ backendApi.add_resource(UserAPI, "/api/users")
 # change when other areas are done
 # api for getting, posting and deleteing favourites
 class FavouriteAPI(Resource):
-    @login_required
     def get(self):
         favourites = Favourites.query.all()
         return jsonify([{
