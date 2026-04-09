@@ -665,9 +665,6 @@ class AdminReportAPI(Resource):
                 "reviewID": new_report.reviewID,
             }
         }, 201
-    
-
-
 backendApi.add_resource(AdminReportAPI, "/api/reports")
 
 @app.route('/api/admin/test')
