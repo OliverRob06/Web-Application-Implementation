@@ -616,13 +616,6 @@ class RatingAPI(Resource):
         }, 201  
 backendApi.add_resource(RatingAPI, "/api/ratings")
 
-# change when other areas are done
-# api for admins reviewing reported reviews
-class AdminReportAPI(Resource):
-    def get(self):
-
-
-backendApi.add_resource(AdminReportAPI, "/api/admin")
 
 @app.route('/api/admin/test')
 @admin_required
