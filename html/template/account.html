@@ -12,10 +12,12 @@
 
 {% block heading2 %} 
     <form action="{{ url_for('logout') }}" method="POST">
-       {{button('logout','submit','Log Out','big_button filterButton btn')}} 
+        {{button('logout','submit','Log Out','big_button filterButton btn')}} 
     </form>
 
 {% endblock %}
 
 {% block content %} 
+    <h2 class="scrollHeading">Your Favourites </h2>
+    {{ MovieCardScroll(movies) }}
 {% endblock %}
