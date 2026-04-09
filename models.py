@@ -16,21 +16,22 @@ class Favourites(db.Model):
     userID = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
     movieID = db.Column(db.Integer, nullable = False)
 
-#class reviews(db.Model):
- #   id = db.Column(db.Integer, primary_key = True)
- #   content = db.Column(db.String(10000), nullable = False)
+class Review(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    content = db.Column(db.String(10000), nullable = False)
+    movieID = db.Column(db.Integer, nullable = False)
  #   #foreign key Links To Users
- #   user_id = db.Column(db.Integer, db.ForeignKey('users_db.id'), nullable = False)
- #   #movieID = db.Column(db.Integer, db.ForeignKey('movie_id'), nullable = False)
+    userID = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
+
 
 #class ratings(db.Model):
  #   id = db.Column(db.Integer, primary_key = True)
  #   score = db.Column(db.Integer, primary_key = True)
  #   #foreign keys to link to user and movie
  #   user_id = db.Column(db.Integer, db.ForeignKey('users_db.id'), nullable = False)
- #   #movieID = db.Column(db.Integer, db.ForeignKey('movie_id'), nullable = False)
+    #movieID = db.Column(db.Integer, nullable = False)
 
 #class reports(db.Model):
  #   id = db.Column(db.Integer, primary_key = True)
  #   user_id = db.Column(db.Integer, db.ForeignKey('users_db.id'), nullable = False)
- #   #movieID = db.Column(db.Integer, db.ForeignKey('movie_id'), nullable = False)
+   # movieID = db.Column(db.Integer, nullable = False)
