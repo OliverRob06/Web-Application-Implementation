@@ -1,5 +1,6 @@
 {% extends 'layout/adminBase.html' %}
-{% from 'components/forms.html' import input, button, review %}
+{% from 'components/forms.html' import input, button %}
+{% from 'components/admin.html' import review %}
 
 {% block content %}
 <div class="row align-items-center g-0 mb-4">
@@ -12,6 +13,6 @@
 </div>
 
 {% for r in reviews %}
-{{ review(r.title, r.Aname, r.description, r.review) }}
-{% endfor %}
+{{ review(r.movie_title, r.username, "Total Reports: " ~ r.report_count, r.content) }}
+{% endfor %}p
 {% endblock %}

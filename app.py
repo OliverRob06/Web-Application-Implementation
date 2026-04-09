@@ -103,32 +103,24 @@ def signup():
 @login_required
 def home():
     user = User.query.filter_by(username=session['user']).first()
-    user_id = user.id
-
-    favourites = Favourites.query.filter_by(userID=user_id).all()
+    favourites = Favourites.query.filter_by(userID=user.id).all()
     
     favs = [f.movieID for f in favourites]
-    if not favs:
-        movies = get_top_rated_movies()
-        
+    
     if not favs:
         movies = get_top_rated_movies()
     else:
         all_recommended = []
         for movie_id in favs:
-            recommended = get_recommendations(movie_id)
-            all_recommended.extend(recommended)
-
-        seen = set()
-        unique_recommended = []
-        for movie in all_recommended:
-            if movie['id'] not in seen:
-                seen.add(movie['id'])
-                unique_recommended.append(movie)
+            all_recommended.extend(get_recommendations(movie_id))
         
+        # Deduplicate
+        seen = {m['id'] for m in all_recommended} # Example set comprehension
+        unique_recommended = list({v['id']:v for v in all_recommended}.values())
         random.shuffle(unique_recommended)
         movies = unique_recommended[:20]
     
+    # Ensure movies is never empty/None before this loop
     formatted_movies = []
     for m in movies:
         formatted_movies.append({
@@ -136,7 +128,7 @@ def home():
             "title": m.get("title"),
             "poster_path": f"https://image.tmdb.org/t/p/w300{m.get('poster_path')}" if m.get("poster_path") else None
         })
-    
+
     if session.get('role') == 'admin':
         return render_template('admin_search.html')
     else:
@@ -148,13 +140,11 @@ def account():
     user = User.query.filter_by(username=session['user']).first()
     user_id = user.id
 
+    # Get user's favourites
     favourites = Favourites.query.filter_by(userID=user_id).all()
-
     favourite_movies = []
 
     for f in favourites:
-        # 2. f.movieID is an integer (e.g., 550)
-        # You MUST fetch the movie details dictionary from the API using that ID
         movie_data = fetch_movie(f.movieID) 
         
         if movie_data:
@@ -164,7 +154,20 @@ def account():
                 "poster_path": f"https://image.tmdb.org/t/p/w500{movie_data.get('poster_path')}" if movie_data.get("poster_path") else None
             })
 
-    return render_template('account.html', movies=favourite_movies)
+    # Get user's reviews
+    user_reviews = Review.query.filter_by(userID=user_id).all()
+    reviews_data = []
+    
+    for review in user_reviews:
+        movie_data = fetch_movie(review.movieID)
+        reviews_data.append({
+            "movie_id": review.movieID,
+            "movie_title": movie_data.get('title', 'Unknown Movie') if movie_data else 'Unknown Movie',
+            "content": review.content,
+            "review_id": review.id
+        })
+
+    return render_template('account.html', movies=favourite_movies, reviews=reviews_data)
 
 @app.route('/movie/<int:movie_id>', methods = ['GET','POST'])
 @login_required
@@ -244,34 +247,88 @@ def movieapi(movie_id):
     # 3. Redirect back to the same movie page
     return redirect(url_for('movie_page', movie_id=movie_id))
 
-@app.route('/editUser')
+@app.route('/editUser', methods=['GET', 'POST'])
 @login_required
 def editUser():
+    if request.method == 'POST':
+        current_pw_input = request.form.get('currentPassword')
+        new_username = request.form.get('newUsername')
+        
+        user = User.query.filter_by(username=session['user']).first()
+
+        # Check if password is correct
+        if user.password != current_pw_input:
+            flash("Incorrect current password.")
+            return redirect(url_for('editUser'))
+
+        # Check if new username is available
+        if User.query.filter_by(username=new_username).first():
+            flash("Username already exists.")
+            return redirect(url_for('editUser'))
+
+        # Update
+        user.username = new_username
+        db.session.commit()
+        session['user'] = new_username # Update session to match new name
+        
+        flash("Username updated successfully!")
+        return redirect(url_for('account'))
+
     return render_template('editUser.html')
 
-
-@app.route('/editPass')
+@app.route('/editPass', methods=['GET', 'POST'])
 @login_required
 def editPass():
-    return render_template('userPass.html')
+    if request.method == 'POST':
+        new_password = request.form.get('newPassword')
+        confirm_password = request.form.get('confirmPassword')
+        
+        if new_password != confirm_password:
+            flash("Passwords do not match!")
+            return redirect(url_for('editPass'))
 
+        current_user = User.query.filter_by(username=session['user']).first()
+        current_user.password = new_password # Note: In production, use hashing!
+        db.session.commit()
+
+        flash("Password updated successfully!")
+        return redirect(url_for('account'))
+
+    return render_template('editPass.html')
 
 @app.route('/reviews')
 @login_required
+@admin_required 
 def review():
-    all_reviews = Review.query.all()
-
-    reviews_data = []
-    for r in all_reviews:
-        user = User.query.filter_by(id=r.userID).first()
-        reviews_data.append({
-            "title": f"Movie ID: {r.movieID}",  # Or fetch movie title if needed
-            "Aname": user.username if user else "Unknown",
-            "description": r.content,
-            "review": "Reviewed"  # Or show a rating if you want
-        })
-
-    return render_template('admin_review.html', reviews=reviews_data)
+    # Get all reports with their associated reviews
+    reports = Report.query.all()
+    
+    # Get unique reviews that have been reported
+    reported_reviews = []
+    seen_review_ids = set()
+    
+    for report in reports:
+        if report.reviewID not in seen_review_ids:
+            seen_review_ids.add(report.reviewID)
+            review = Review.query.filter_by(id=report.reviewID).first()
+            
+            if review:
+                user = User.query.filter_by(id=review.userID).first()
+                movie_data = fetch_movie(review.movieID)
+                
+                # Count how many reports this review has
+                report_count = Report.query.filter_by(reviewID=review.id).count()
+                
+                reported_reviews.append({
+                    "review_id": review.id,
+                    "movie_title": movie_data.get('title', 'Unknown Movie') if movie_data else 'Unknown Movie',
+                    "username": user.username if user else "Unknown",
+                    "content": review.content,
+                    "report_count": report_count,
+                    "movie_id": review.movieID
+                })
+    
+    return render_template('admin_review.html', reviews=reported_reviews)
 
 # change when other areas are done
 # api for searching movies, else return all movies
@@ -646,35 +703,63 @@ class AdminReportAPI(Resource):
             "id": r.id,
             "userID": r.userID,
             "reviewID": r.reviewID
-        }for r in reports])
+        } for r in reports])
     
     def post(self):
         data = request.get_json()
 
         if not data.get("userID") or not data.get("reviewID"):
-            return{"message": "Requires a userID and reviewID to make a report"},400
+            return {"message": "Requires a userID and reviewID to make a report"}, 400
 
-        existing_report = Report.query.filter_by(userID=data["userID"], reviewID=data["reviewID"]).first()
+        existing_report = Report.query.filter_by(
+            userID=data["userID"], 
+            reviewID=data["reviewID"]
+        ).first()
+        
         if existing_report:
-            return {"error": "Rating already exists"}, 400
+            return {"error": "Report already exists"}, 400
 
-
-        new_report = Rating(
-            userID = data["userID"],
-            reviewID = data["reviewID"]
+        # FIXED: Create a Report, not a Rating
+        new_report = Report(
+            userID=data["userID"],
+            reviewID=data["reviewID"]
         )
-
 
         db.session.add(new_report)
         db.session.commit()
+        
         return {
-            "message": "New rating successfully added",
-            "rating": {
+            "message": "New report successfully added",
+            "report": {
                 "id": new_report.id,
                 "userID": new_report.userID,
                 "reviewID": new_report.reviewID,
             }
         }, 201
+    
+    def delete(self):
+        data = request.get_json()
+        
+        if not data.get("reviewID"):
+            return {"message": "reviewID required to delete reports"}, 400
+        
+        # Delete all reports for a specific review (admin action)
+        reports = Report.query.filter_by(reviewID=data["reviewID"]).all()
+        
+        for report in reports:
+            db.session.delete(report)
+        
+        # Optionally delete the review itself
+        if data.get("delete_review"):
+            review = Review.query.filter_by(id=data["reviewID"]).first()
+            if review:
+                db.session.delete(review)
+        
+        db.session.commit()
+        
+        return {
+            "message": f"Deleted {len(reports)} report(s) for review {data['reviewID']}"
+        }, 200
 backendApi.add_resource(AdminReportAPI, "/api/reports")
 
 @app.route('/api/admin/test')
@@ -682,10 +767,14 @@ backendApi.add_resource(AdminReportAPI, "/api/reports")
 def admin_secret():
     return "If you see this, you are an Admin!"
 
+# Change this route to use the logic
 @app.route('/admin_review')
+@login_required
+@admin_required 
 def admin_review():
-    # Render the admin review page
-    return render_template('admin_review.html')
+    # Instead of just rendering, redirect to the 'review' function 
+    # OR copy the logic from the @app.route('/reviews') here.
+    return redirect(url_for('review'))
 
 @app.route('/admin_search')
 def admin_search():
