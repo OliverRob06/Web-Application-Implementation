@@ -146,16 +146,24 @@ def signup():
 @app.route('/home')
 @login_required
 def home():
-    # get favourited movei and compile recommendations into a list and randomise it
-    user = session['user']
-    user_favs = favourites.get(user, [])
+    user_id = 1
+    url = f"http://localhost:8000/api/favourites?userID={user_id}"
 
-    if not user_favs:
+    response = requests.get(url)
+    favourites = response.json()
+
+    print(f"Favourites for user {user_id}:")
+    for f in favourites:
+        print(f"MovieID: {f['movieID']}, FavouriteID: {f['id']}")
+
+    print(favourites)
+
+    if not favourites:
         movies = get_top_rated_movies()
-    
+        
     else:
         all_recommended = []
-        for fav_movie in favourites[user]:
+        for fav_movie in favourites:
             movie_id = fav_movie.get('movie_id')
             if movie_id:
                 recommended = get_recommendations(movie_id)
@@ -167,10 +175,10 @@ def home():
             if movie['id'] not in seen:
                 seen.add(movie['id'])
                 unique_recommended.append(movie)
-
+        
         random.shuffle(unique_recommended)
         movies = unique_recommended[:20]
-
+    
     formatted_movies = []
     for m in movies:
         formatted_movies.append({
@@ -364,52 +372,15 @@ backendApi.add_resource(UserAPI, "/api/users")
 # change when other areas are done
 # api for getting, posting and deleteing favourites
 class FavouriteAPI(Resource):
-    #@login_required
+    @login_required
     def get(self):
-        user_id = request.args.get("userID")
-        if user_id:  # filter by userID if provided
-            favourites = Favourites.query.filter_by(userID=user_id).all()
-        else:
-            favourites = Favourites.query.all()
+        favourites = Favourites.query.all()
         return jsonify([{
             "id": f.id,
             "userID": f.userID,
             "movieID": f.movieID
         }for f in favourites])
         
-
-    def post(self):
-        data = request.get_json()
-
-        if not data or not data.get("movieID") or not data.get("userID"):
-            return{"message": "user and move ID required to delete the favourite"}, 404
-
-        existing_favourite = Favourites.query.filter_by(
-            userID=data["userID"],
-            movieID=data["movieID"]
-        ).first()
-
-        if not existing_favourite:
-            return {"error": "Favourite already exists"}, 409
-
-
-        new_favourite = Favourites(
-            userID = data["userID"],
-            movieID = data["movieID"],
-        )
-
-
-        db.session.add(new_favourite)
-        db.session.commit()
-        return{
-            "message":"new favourite successfully added", 
-            "favourite":
-            { 
-                "id": new_favourite.id,
-                "userID": new_favourite.userID,
-                "movieID": new_favourite.movieID 
-            }
-            },201
 
     @login_required
     def delete(self):
@@ -434,6 +405,7 @@ class FavouriteAPI(Resource):
         db.session.commit()
 
         return {"message": f"User '{data['id']}' deleted successfully"}, 200
+
 
 backendApi.add_resource(FavouriteAPI, "/api/favourites")
 
@@ -498,6 +470,25 @@ class AdminReportAPI(Resource):
 def admin_secret():
     return "If you see this, you are an Admin!"
 
+api.add_resource(MovieAPI,
+    '/api/movies',
+    '/api/movies/<int:movie_id>'
+)
+
+
+
+api.add_resource(ReviewAPI,
+    '/api/movies/<int:movie_id>/reviews'
+)
+
+api.add_resource(RatingAPI,
+    '/api/movies/<int:movie_id>/rating'
+)
+
+api.add_resource(AdminReportAPI,
+    '/api/admin/reports',
+    '/api/admin/reports/<string:report_id>'
+)
 
 print("DB path:", os.path.abspath(db_path))
 
