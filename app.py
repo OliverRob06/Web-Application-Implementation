@@ -1,16 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, flash, render_template, request, redirect, url_for, session, jsonify
 from flask_restful import Api, Resource
-from auth import ADMIN_PASSWD, login_required, admin_required
+from auth import login_required, admin_required
 from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recommendations ,get_top_rated_movies
-from flask_sqlalchemy import SQLAlchemy
 from models import db, User, Favourites, Review, Rating
-import requests
 import random
 import os
-import uuid
 
 app = Flask(__name__, template_folder = "html/template", static_folder = "static")
-
 
 #store database inside the project directory
 db_folder = os.path.join(os.getcwd(), "database")
@@ -26,10 +22,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 backendApi = Api(app)
 
-
-
-
-
 #creating tables
 def create_tables():
     with app.app_context():
@@ -38,11 +30,9 @@ def create_tables():
 
 create_tables()
 
-
 #cookie - if anyone is logged in 
 app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
 api = Api(app)
-
 
 reviews = []
 ratings = {}
@@ -234,9 +224,29 @@ def search():
 
     return render_template('search.html', movies=results)
 
+@app.route('/movie/add/<int:movie_id>', methods=['POST'])
+@login_required
+def movieapi(movie_id):
+    user_id = session.get('user_id') # Adjust based on how you store user info
+    
+    # 1. Check if it's already in the database to avoid duplicates
+    exists = Favourites.query.filter_by(user_id=user_id, movie_id=movie_id).first()
+    
+    if not exists:
+        # 2. Add to database
+        new_favorite = Favourites(user_id=user_id, movie_id=movie_id)
+        db.session.add(new_favorite)
+        db.session.commit()
+        flash("Movie added to your favorites!")
+    else:
+        flash("Movie is already in your list.")
+
+    # 3. Redirect back to the same movie page
+    return redirect(url_for('movie_page', movie_id=movie_id))
+
 @app.route('/reviews')
 @login_required
-def reviews_page():
+def review():
     # Get all reviews from the database
     all_reviews = Review.query.all()
 
@@ -252,6 +262,7 @@ def reviews_page():
         })
 
     return render_template('admin_review.html', reviews=reviews_data)
+
 # change when other areas are done
 # api for searching movies, else return all movies
 class MovieAPI(Resource):
@@ -616,13 +627,24 @@ class RatingAPI(Resource):
         }, 201  
 backendApi.add_resource(RatingAPI, "/api/ratings")
 
+# change when other areas are done
+# api for admins reviewing reported reviews
+class AdminReportAPI(Resource):
+    def get(self):
+        reviews = Review.query.all()
+        return jsonify([{
+            "id": r.id,
+            "userID": r.userID,
+            "movieID": r.movieID
+        }for r in reviews])
+
+
+backendApi.add_resource(AdminReportAPI, "/api/admin")
 
 @app.route('/api/admin/test')
 @admin_required
 def admin_secret():
     return "If you see this, you are an Admin!"
-
-
 
 print("DB path:", os.path.abspath(db_path))
 

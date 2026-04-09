@@ -1,5 +1,5 @@
 from app import app, db
-from models import User, Favourites, Review, Rating
+from models import User, Favourites, Review, Rating, Report
 
 #list of users
 users = [
@@ -30,6 +30,13 @@ ratings = [
     {"userID": 1, "movieID": 3, "score": 4},
 ]
 
+reports = [
+    {"userID": 1, "reviewID": 1},
+    {"userID": 1, "reviewID": 2},
+    {"userID": 1, "reviewID": 1},
+    {"userID": 2, "reviewID": 2},
+    {"userID": 2, "reviewID": 3},
+]
 with app.app_context():
     for user_data in users:
         new_user = User(
@@ -62,9 +69,14 @@ with app.app_context():
         )
         db.session.add(new_rating)
     
+    for report_data in reports:
+        new_report = Report(
+            userID = report_data["userID"],
+            reviewID = report_data["reviewID"]
+        )
+        db.session.add(new_report)
     
-
-
+    
         
     db.session.commit()
     print("Database populated with initial tables")

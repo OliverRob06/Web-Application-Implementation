@@ -8,8 +8,7 @@ body {
 }
 
 .star:hover{
-	transform: translateY(-4px);
-	transition: transform 0.5s ease,;
+	content: url("/static/images/star.png");
 }
 
 .logo{
