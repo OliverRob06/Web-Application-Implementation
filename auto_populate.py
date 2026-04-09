@@ -1,5 +1,5 @@
 from app import app, db
-from models import User, Favourites, Review
+from models import User, Favourites, Review, Rating
 
 #list of users
 users = [
@@ -24,6 +24,12 @@ reviews = [
     {"userID": 2, "movieID": 69, "content": "Walk the Line is a compelling biopic that brilliantly captures Johnny Cash’s raw talent and turbulent life, anchored by powerful performances and soulful music."},
 ]
     
+ratings = [
+    {"userID": 1, "movieID": 5, "score": 10},
+    {"userID": 1, "movieID": 4, "score": 3},
+    {"userID": 1, "movieID": 3, "score": 4},
+]
+
 with app.app_context():
     for user_data in users:
         new_user = User(
@@ -47,6 +53,16 @@ with app.app_context():
             content = review_data["content"],
         )
         db.session.add(new_review)
+
+    for rating_data in ratings:
+        new_rating = Rating(
+            userID = rating_data["userID"],
+            movieID = rating_data["movieID"],
+            score = rating_data["score"],
+        )
+        db.session.add(new_rating)
+    
+    
 
 
         
