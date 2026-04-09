@@ -14,13 +14,11 @@ Oliver:
 admin pages
 
 Eddie:
-incorect login page (with message)
-when lggin as username that njust chnaged
+    incorect login page (with message)
+    when lggin as username that njust chnaged
 
-add reveiws to account page
+    add function to add favourite
 
-add your reviews to your acconut page
 
-add function to add favourite
-
+add reveiws to account page - done just html problems
 approve and dismiss reviews - done just html problems
