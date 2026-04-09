@@ -176,7 +176,7 @@ def account():
         favourite_movies.append({
             "id": m.get("id"),
             "title": m.get("title"),
-            "poster_path": f"https://image.tmdb.org/t/p/w500{m.get('poster_path')}" if m.get("poster_path") else None
+            "poster_path": m.get("poster_path")
         })
 
     return render_template('account.html', movies=favourite_movies)
