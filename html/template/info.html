@@ -1,6 +1,7 @@
 {% extends 'layout/movietemplate.html' %}
 {% from 'components/forms.html' import button %}
 {% from 'components/user.html' import actorCardScroll %}
+{% from 'components/user.html' import infoReview %}
 
 {% block heading %}
 {{ movie.title }}
@@ -60,6 +61,8 @@
 
     </div>
 
+    {{infoReview('reviews','BUngo','Jeff','BLabee bughh be bee blee Labee bughh be bee bleeLabee bughh be bee bleeLabee
+    bughh be bee blee')}}
 
 
 
