@@ -1,5 +1,5 @@
 from app import app, db
-from models import User, Favourites
+from models import User, Favourites, Review
 
 #list of users
 users = [
@@ -17,6 +17,12 @@ favourites = [
     {"userID": 2, "movieID": 5},
     {"userID": 2, "movieID": 2},
 ]
+
+reviews = [
+    {"userID": 1, "movieID": 5, "content": "Four Rooms (1995) is a quirky, chaotic anthology anchored by Tim Roth as a beleaguered bellhop, offering wildly inventive and uneven stories that mix dark humor and absurdity, making it a fun but disjointed cinematic ride."},
+    {"userID": 1, "movieID": 21, "content": "The Endless Summer is a visually stunning and timeless surf documentary that captures the thrill of chasing waves around the world with infectious joy and wanderlust."},
+    {"userID": 2, "movieID": 69, "content": "Walk the Line is a compelling biopic that brilliantly captures Johnny Cash’s raw talent and turbulent life, anchored by powerful performances and soulful music."},
+]
     
 with app.app_context():
     for user_data in users:
@@ -33,6 +39,14 @@ with app.app_context():
             movieID = favourite_data["movieID"],
         )
         db.session.add(new_favourite)
+    
+    for review_data in reviews:
+        new_review = Review(
+            userID = review_data["userID"],
+            movieID = review_data["movieID"],
+            content = review_data["content"],
+        )
+        db.session.add(new_review)
 
 
         
