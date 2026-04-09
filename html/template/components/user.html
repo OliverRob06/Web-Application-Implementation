@@ -26,7 +26,7 @@
 <div class="container-fluid">
     <div class="d-flex scroll">
         {% for movie in movies %}
-        {{ movieCard(movie.id , movie.poster_path, movie.title) }}
+        {{ movieCard(movie.id , "https://image.tmdb.org/t/p/original" ~ movie.poster_path, movie.title) }}
         {% endfor %}
     </div>
 </div>
