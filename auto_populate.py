@@ -9,6 +9,7 @@ users = [
     
 ]
 
+#user favourites
 favourites = [
     {"userID": 1, "movieID": 1},
     {"userID": 1, "movieID": 2},
