@@ -620,6 +620,12 @@ backendApi.add_resource(RatingAPI, "/api/ratings")
 # api for admins reviewing reported reviews
 class AdminReportAPI(Resource):
     def get(self):
+        reviews = Review.query.all()
+        return jsonify([{
+            "id": r.id,
+            "userID": r.userID,
+            "movieID": r.movieID
+        }for r in reviews])
 
 
 backendApi.add_resource(AdminReportAPI, "/api/admin")
