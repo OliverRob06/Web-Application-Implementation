@@ -3,7 +3,7 @@ from flask_restful import Api, Resource
 from auth import ADMIN_PASSWD, login_required, admin_required
 from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recommendations ,get_top_rated_movies
 from flask_sqlalchemy import SQLAlchemy
-from models import db, User
+from models import db, User, Favourites
 import requests
 import random
 import os
@@ -146,16 +146,25 @@ def signup():
 @app.route('/home')
 @login_required
 def home():
-    # get favourited movei and compile recommendations into a list and randomise it
-    user = session['user']
-    user_favs = favourites.get(user, [])
+    user_id = session['user']
+    print(user_id)
+    url = f"http://localhost:8000/api/favourites?userID={user_id}"
 
-    if not user_favs:
+    response = requests.get(url)
+    favourites = response.json()
+
+    print(f"Favourites for user {user_id}:")
+    for f in favourites:
+        print(f"MovieID: {f['movieID']}, FavouriteID: {f['id']}")
+
+    print(favourites)
+
+    if not favourites:
         movies = get_top_rated_movies()
-    
+        
     else:
         all_recommended = []
-        for fav_movie in favourites[user]:
+        for fav_movie in favourites:
             movie_id = fav_movie.get('movie_id')
             if movie_id:
                 recommended = get_recommendations(movie_id)
@@ -167,10 +176,10 @@ def home():
             if movie['id'] not in seen:
                 seen.add(movie['id'])
                 unique_recommended.append(movie)
-
+        
         random.shuffle(unique_recommended)
         movies = unique_recommended[:20]
-
+    
     formatted_movies = []
     for m in movies:
         formatted_movies.append({
@@ -366,35 +375,40 @@ backendApi.add_resource(UserAPI, "/api/users")
 class FavouriteAPI(Resource):
     @login_required
     def get(self):
-        user = session['user']
-        return {'favourites': favourites.get(user, [])}, 200
+        favourites = Favourites.query.all()
+        return jsonify([{
+            "id": f.id,
+            "userID": f.userID,
+            "movieID": f.movieID
+        }for f in favourites])
         
-    @login_required
-    def post(self):
-        user = session['user']
-        data = request.json
-
-        if not data:
-            return {'error': 'No data provided'}
-        
-        data['id'] = str(uuid.uuid4())
-
-        favourites.setdefault(user, []).append(data)
-
-        return {'message': 'Added to favourites', 'data':data}, 201
 
     @login_required
-    def delete(self, fav_id):
-        user = session['user']
+    def delete(self):
+        data = request.get_json()
 
-        if user not in favourites:
-            return {'error':'No favourites found'}, 404
-        
-        original_length = len(favourites[user])
+        #validate input
+        if not data.get("userID") or not data.get("movieID"):
+            return{"message": "user and move ID required to delete the favourite"}, 404
 
-        favourites = [
-            f for f in favourites[user] if f.get('id') != fav_id
-        ]    
+        #find favourite
+
+        favourite = Favourites.query.filter_by(
+            userID=data["userID"],
+            movieID=data["movieID"]
+        ).first()
+
+        if not favourite:
+            return {"error": "Favourite not found"}, 404
+
+
+        db.session.delete(favourite)
+        db.session.commit()
+
+        return {"message": f"User '{data['id']}' deleted successfully"}, 200
+
+
+backendApi.add_resource(FavouriteAPI, "/api/favourites")
 
 # change when other areas are done
 # api for getting and posting reviews
@@ -462,10 +476,7 @@ api.add_resource(MovieAPI,
     '/api/movies/<int:movie_id>'
 )
 
-api.add_resource(FavouriteAPI,
-    '/api/favourites',
-    '/api/favourites/<string:fav_id>'
-)
+
 
 api.add_resource(ReviewAPI,
     '/api/movies/<int:movie_id>/reviews'

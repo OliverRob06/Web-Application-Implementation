@@ -4,16 +4,14 @@ error codes matching
 
 database for favourites, reports and user information:
     link crud statements to the databases to popualte them
-        users 
-        favourites
         reviews
         ratings
         reports
         
     query for finding all reports for x review and sorting them in order of most reported
-    see if data is being stored effiecvtly for reviews
+    API Authentication
     Add passwording hashing
-    Unhardcode admin access
+  
 
 admin pages
 

@@ -5,18 +5,18 @@
 {% from 'components/forms.html' import input %}
 
 
-{% block heading %} 
-    {{ movie.title }}
+{% block heading %}
+{{ movie.title }}
 {% endblock %}
 
-{% block heading2 %} 
-    <form action="{{ url_for('movieapi', movieid=movieid) }}" method="POST">
-    <img class="star btn" type= "submit" src="{{ url_for('static', filename='images/star.png') }}" alt="image">
-    </form>
+{% block heading2 %}
+<form action="{{ url_for('movieapi', movieid=movieid) }}" method="POST">
+    <img class="star btn" type="submit" src="{{ url_for('static', filename='images/star.png') }}" alt="image">
+</form>
 {% endblock %}
 
-{% block heading3 %} 
-    <h2>{{ movie.vote_average }} /10</h2>
+{% block heading3 %}
+<h2>{{ movie.vote_average }} /10</h2>
 {% endblock %}
 
 
@@ -26,7 +26,7 @@
     <div class="row infoRow">
         <div class="col-4">
             {% if movie.poster_path %}
-                <img class="infoPoster" src="https://image.tmdb.org/t/p/w300{{ movie.poster_path }}">
+            <img class="infoPoster" src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}">
             {% endif %}
         </div>
         <div class="col-2 infoPara">
@@ -36,14 +36,14 @@
             <h3>Director</h3>
             <p>
                 {% for d in directors %}
-                    {{ d }}{% if not loop.last %}, {% endif %}
+                {{ d }}{% if not loop.last %}, {% endif %}
                 {% endfor %}
             </p>
 
             <h3>Writers</h3>
             <p>
                 {% for w in writers %}
-                    {{ w }}{% if not loop.last %}, {% endif %}
+                {{ w }}{% if not loop.last %}, {% endif %}
                 {% endfor %}
             </p>
 
@@ -56,7 +56,7 @@
 
         </div>
         <div class="col-6 infoPara">
-            <h3>  Overview </h3>
+            <h3> Overview </h3>
             <p>{{ movie.overview }}</p>
             {{ actorCardScroll(actors) }}
         </div>
@@ -87,8 +87,9 @@
             </div>
 
 
-        {{infoReview('reviews','BUngo','Jeff','BLabee bughh be bee blee Labee bughh be bee bleeLabee bughh be bee bleeLabee bughh be bee blee')}}
-    
+    {{infoReview('reviews','BUngo','Jeff','BLabee bughh be bee blee Labee bughh be bee bleeLabee bughh be bee bleeLabee
+    bughh be bee blee')}}
 
 
-{% endblock %}
+
+    {% endblock %}
