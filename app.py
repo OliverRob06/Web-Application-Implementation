@@ -341,7 +341,6 @@ class UserAPI(Resource):
             }
         }, 200
 
-
     #delete method
     def delete(self):
         data = request.get_json()
