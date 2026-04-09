@@ -11,7 +11,7 @@
 
 {% block heading2 %}
 <form action="{{ url_for('movieapi', movieid=movieid) }}" method="POST">
-    <img class="star btn" type="submit" src="{{ url_for('static', filename='images/star.png') }}" alt="image">
+    <img class="star btn" type="submit" src="{{ url_for('static', filename='images/starHover.png') }}" alt="image">
 </form>
 {% endblock %}
 
@@ -70,18 +70,14 @@
                             Reviews
                         </h1>            
                     </div>
-                    <div class="col-2 ps-2 pe-2">
-                        {{button('review','submit','write a review','big_button btn')}}
-                    </div>
-                    <div class="col-4">
-                        <h1>
-                        </h1>    
+                    <div class="col-6 ps-2 pe-2">
+                        {{input('Review','text','Review text here','rateInput')}}
                     </div>
                     <div class="col-1">
                         {{input('rating','number','Rate','rateInput')}}
                     </div>
                     <div class="col-2 ps-2 pe-5">
-                        {{button('rate','submit','Rate','big_button btn')}}
+                        {{button('rate','submit','Submit','big_button btn')}}
                     </div>
                 </div>
             </div>
