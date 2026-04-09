@@ -3,8 +3,8 @@ from app import app, db, users_db
 def populate_users_db():
         if users_db.query.count() == 0:
             users = [
-                users_db(username = "john", password = "password123"),
-                users_db(username = "jane", password = "securepass"),
+                users_db(username = "john", password = "password123", admin = False),
+                users_db(username = "jane", password = "securepass", admin = False),
             ]
             
             #ensure no duplicates

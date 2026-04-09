@@ -3,8 +3,10 @@ from models import User, Favourites
 
 #list of users
 users = [
-    {"username": "john", "password": "password123"},
-    {"username":  "jane", "password": "securepass"},
+    {"username": "john", "password": "password123", "admin": False},
+    {"username":  "jane", "password": "securepass", "admin": False},
+    {"username": "admin", "password": "adminPW", "admin": True},
+    
 ]
 
 favourites = [
@@ -20,6 +22,7 @@ with app.app_context():
         new_user = User(
             username=user_data["username"],
             password=user_data["password"], 
+            admin = user_data["admin"],
         )
         db.session.add(new_user)
     

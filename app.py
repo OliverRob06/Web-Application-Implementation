@@ -93,20 +93,20 @@ def login():
 
         # currently to login as admin 
         # username = admin 
-        # password = adminkey
-
-        if user == 'admin' and pw == ADMIN_PASSWD:
-            # change when database is done
-            session['role'] = 'admin'
-            session['user'] = user
-            return redirect(url_for('home'))
+        # password = adminke
         
         db_user = User.query.filter_by(username = user).first()
         
         if db_user and db_user.password == pw:
-            session['role'] = 'user'
             session['user'] = db_user.username
-            return redirect(url_for('home'))
+
+            if db_user.admin:
+                session['role'] = 'admin'
+                return redirect(url_for('home'))
+            
+            else:
+                session['role'] = 'user'
+                return redirect(url_for('home'))
         
         else:
             return render_template('login.html'), 'Invalid Credentials'
@@ -276,6 +276,7 @@ class UserAPI(Resource):
                 "id": u.id,
                 "username": u.username,
                 "password": u.password,
+                "admin": u.admin,
         }for u in users])
     
     #create method
@@ -293,6 +294,7 @@ class UserAPI(Resource):
         new_user = User(
             username = data["username"],
             password = data["password"],
+            admin = False
         )
 
 
