@@ -431,7 +431,6 @@ class FavouriteAPI(Resource):
 
         return {"message": f"User '{data['id']}' deleted successfully"}, 200
 
-
 backendApi.add_resource(FavouriteAPI, "/api/favourites")
 
 # change when other areas are done
@@ -495,25 +494,6 @@ class AdminReportAPI(Resource):
 def admin_secret():
     return "If you see this, you are an Admin!"
 
-api.add_resource(MovieAPI,
-    '/api/movies',
-    '/api/movies/<int:movie_id>'
-)
-
-
-
-api.add_resource(ReviewAPI,
-    '/api/movies/<int:movie_id>/reviews'
-)
-
-api.add_resource(RatingAPI,
-    '/api/movies/<int:movie_id>/rating'
-)
-
-api.add_resource(AdminReportAPI,
-    '/api/admin/reports',
-    '/api/admin/reports/<string:report_id>'
-)
 
 print("DB path:", os.path.abspath(db_path))
 
