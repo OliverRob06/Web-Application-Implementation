@@ -67,25 +67,15 @@ def login():
         
         db_user = User.query.filter_by(username = user).first()
         
-        if db_user and db_user.password == pw:
-            session['user'] = db_user.username
-
-            if db_user.admin:
-                session['role'] = 'admin'
-                user = User.query.filter_by(username=session['user']).first()
-                global user_id
-                user_id = user.id
-                return redirect(url_for('home'))
-            
-            else:
-                session['role'] = 'user'
-                user = User.query.filter_by(username=session['user']).first()
-                global user_id
-                user_id = user.id
-                return redirect(url_for('home'))
-        
+        if db_user.admin:
+            session['role'] = 'admin'
         else:
-            return render_template('login.html'), 'Invalid Credentials'
+            session['role'] = 'user'
+
+        # store username in session
+        session['user'] = db_user.username
+
+        return redirect(url_for('home'))
 
     return render_template('login.html')
 
@@ -122,6 +112,9 @@ def signup():
 @app.route('/home')
 @login_required
 def home():
+    user = User.query.filter_by(username=session['user']).first()
+    user_id = user.id
+
     favourites = Favourites.query.filter_by(userID=user_id).all()
     
     favs = [f.movieID for f in favourites]
@@ -162,6 +155,9 @@ def home():
 @app.route('/account')
 @login_required
 def account():
+    user = User.query.filter_by(username=session['user']).first()
+    user_id = user.id
+
     favourites = Favourites.query.filter_by(userID=user_id).all()
 
     favourite_movies = []
