@@ -109,7 +109,7 @@ def login():
             return redirect(url_for('home'))
         
         else:
-            return 'Invalid Credentials', 403
+            return render_template('login.html'), 'Invalid Credentials'
 
     return render_template('login.html')
 
@@ -232,6 +232,21 @@ def movie_page(movie_id):
         writers=writers, 
         genres=genre_name
     )
+
+@app.route('/search')
+@login_required
+def search():
+    query = request.args.get('q')
+
+    if not query:
+        return redirect(url_for('home'))
+
+    results = search_movies_tmdb(query)
+
+    if not results:
+        return render_template('search.html', movies=[])
+
+    return render_template('search.html', movies=results)
 
 # change when other areas are done
 # api for searching movies, else return all movies

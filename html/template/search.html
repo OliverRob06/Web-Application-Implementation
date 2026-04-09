@@ -8,14 +8,11 @@
 7Movies
 {% endblock %}
 
-{% block heading2 %} 
-	{{button('Filter','submit','Filter','filterButton btn')}}
+{% block heading2 %}
+{{button('Filter','submit','Filter','filterButton btn')}}
 {% endblock %}
 
 {% block content %}
-<h2 class="scrollHeading">Recommended Movies</h2>
+<h2 class="scrollHeading">Search Results</h2>
 {{ MovieCardScroll(movies) }}
-<h2 class="scrollHeading">Recommended Movies/h2>
-    {{ MovieCardScroll(movies) }}
-
-    {% endblock %}
+{% endblock %}
