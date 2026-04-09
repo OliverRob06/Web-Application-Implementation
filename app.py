@@ -374,6 +374,39 @@ class FavouriteAPI(Resource):
         }for f in favourites])
         
 
+    def post(self):
+        data = request.get_json()
+
+        if not data or not data.get("movieID") or not data.get("userID"):
+            return{"message": "user and move ID required to delete the favourite"}, 404
+
+        existing_favourite = Favourites.query.filter_by(
+            userID=data["userID"],
+            movieID=data["movieID"]
+        ).first()
+
+        if not existing_favourite:
+            return {"error": "Favourite already exists"}, 409
+
+
+        new_favourite = Favourites(
+            userID = data["userID"],
+            movieID = data["movieID"],
+        )
+
+
+        db.session.add(new_favourite)
+        db.session.commit()
+        return{
+            "message":"new favourite successfully added", 
+            "favourite":
+            { 
+                "id": new_favourite.id,
+                "userID": new_favourite.userID,
+                "movieID": new_favourite.movieID 
+            }
+            },201
+
     @login_required
     def delete(self):
         data = request.get_json()
@@ -397,7 +430,6 @@ class FavouriteAPI(Resource):
         db.session.commit()
 
         return {"message": f"User '{data['id']}' deleted successfully"}, 200
-
 
 backendApi.add_resource(FavouriteAPI, "/api/favourites")
 
@@ -462,25 +494,6 @@ class AdminReportAPI(Resource):
 def admin_secret():
     return "If you see this, you are an Admin!"
 
-api.add_resource(MovieAPI,
-    '/api/movies',
-    '/api/movies/<int:movie_id>'
-)
-
-
-
-api.add_resource(ReviewAPI,
-    '/api/movies/<int:movie_id>/reviews'
-)
-
-api.add_resource(RatingAPI,
-    '/api/movies/<int:movie_id>/rating'
-)
-
-api.add_resource(AdminReportAPI,
-    '/api/admin/reports',
-    '/api/admin/reports/<string:report_id>'
-)
 
 print("DB path:", os.path.abspath(db_path))
 
