@@ -146,7 +146,8 @@ def signup():
 @app.route('/home')
 @login_required
 def home():
-    user_id = 1
+    user_id = session['user']
+    print(user_id)
     url = f"http://localhost:8000/api/favourites?userID={user_id}"
 
     response = requests.get(url)
