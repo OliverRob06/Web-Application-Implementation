@@ -24,6 +24,7 @@
 {% macro MovieCardScroll(movies) %}
 <div class="container-fluid">
     <div class="d-flex scroll">
+        {% for movie in movies %}
         {{ movieCard(movie.id, 'https://image.tmdb.org/t/p/w300' ~ movie.poster_path if movie.poster_path else '',
         movie.title) }}
         {% endfor %}
