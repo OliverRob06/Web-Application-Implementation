@@ -1,0 +1,44 @@
+{% extends 'layout/base.html' %}
+{% from 'components/forms.html' import input %}
+{% from 'components/forms.html' import button %}
+
+{% block content %} 
+        <div class="row align-items-center g-0">
+            <div class="col-lg-10 pe-2 ps-4">
+                {{input('Search','text','Search for a movie', 'homeInput')}}    
+            </div>
+            <div class="col-lg-2 ps-2 pe-4">
+				{{button('Filter','submit','Filter','filterButton')}}
+            </div>
+        </div>
+
+
+        <div class="container-fluid d-flex align-items-center justify-content-center py-3">
+            <div class="row w-100 justify-content-center">
+                <div class="list-container col-11 col-md-11 bg-grey rounded-4">
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-baseline gap-3 mb-1">
+                                <h1 class="fw-bold mb-0">Movie Title</h1>
+                                <!-- <h4 class="fw-bold ms-3 mb-0">Account Name</h4> -->
+                            </div>
+
+                            <p class="lead">
+                                bla balalalalalals asjofnoasnd asodnfvjsdnfnaoisfnoiasn
+                            </p>
+                        </div>
+
+                        <div class="d-flex w-25 align-items-center gap-3">
+                            <h2 class="review mb-0 ms-auto me-3">5.0</h2>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        
+{% endblock %}
