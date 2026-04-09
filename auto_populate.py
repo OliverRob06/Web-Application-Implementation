@@ -11,10 +11,10 @@ users = [
 
 #user favourites
 favourites = [
-    {"userID": 1, "movieID": 1},
+    {"userID": 1, "movieID": 5},
     {"userID": 1, "movieID": 2},
     {"userID": 1, "movieID": 3},
-    {"userID": 2, "movieID": 1},
+    {"userID": 2, "movieID": 5},
     {"userID": 2, "movieID": 2},
 ]
     
