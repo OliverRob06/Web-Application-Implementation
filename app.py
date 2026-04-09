@@ -1,16 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from flask_restful import Api, Resource
-from auth import ADMIN_PASSWD, login_required, admin_required
+from auth import login_required, admin_required
 from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recommendations ,get_top_rated_movies
-from flask_sqlalchemy import SQLAlchemy
-from models import db, User, Favourites, Review
-import requests
+from models import db, User, Favourites, Review, Rating
 import random
 import os
-import uuid
 
 app = Flask(__name__, template_folder = "html/template", static_folder = "static")
-
 
 #store database inside the project directory
 db_folder = os.path.join(os.getcwd(), "database")
@@ -26,10 +22,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 backendApi = Api(app)
 
-
-
-
-
 #creating tables
 def create_tables():
     with app.app_context():
@@ -38,19 +30,10 @@ def create_tables():
 
 create_tables()
 
-
 #cookie - if anyone is logged in 
 app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
 api = Api(app)
 
-
-favourites = {
-    'john': [
-        {'movie_id': 1493859},
-        {'movie_id': 500},
-        {'movie_id': 1084242}
-    ]
-}
 reviews = []
 ratings = {}
 reports = []
@@ -74,22 +57,15 @@ def login():
         
         db_user = User.query.filter_by(username = user).first()
         
-        if db_user and db_user.password == pw:
-            session['user'] = db_user.username
-
-            if db_user.admin:
-                session['role'] = 'admin'
-                return redirect(url_for('home'))
-            
-            else:
-                session['role'] = 'user'
-                user = User.query.filter_by(username=session['user']).first()
-                global user_id
-                user_id = user.id
-                return redirect(url_for('home'))
-        
+        if db_user.admin:
+            session['role'] = 'admin'
         else:
-            return render_template('login.html'), 'Invalid Credentials'
+            session['role'] = 'user'
+
+        # store username in session
+        session['user'] = db_user.username
+
+        return redirect(url_for('home'))
 
     return render_template('login.html')
 
@@ -126,6 +102,9 @@ def signup():
 @app.route('/home')
 @login_required
 def home():
+    user = User.query.filter_by(username=session['user']).first()
+    user_id = user.id
+
     favourites = Favourites.query.filter_by(userID=user_id).all()
     
     favs = [f.movieID for f in favourites]
@@ -166,6 +145,9 @@ def home():
 @app.route('/account')
 @login_required
 def account():
+    user = User.query.filter_by(username=session['user']).first()
+    user_id = user.id
+
     favourites = Favourites.query.filter_by(userID=user_id).all()
 
     favourite_movies = []
@@ -241,6 +223,25 @@ def search():
         return render_template('search.html', movies=[])
 
     return render_template('search.html', movies=results)
+
+@app.route('/reviews')
+@login_required
+def review():
+    # Get all reviews from the database
+    all_reviews = Review.query.all()
+
+    # Join with user info to get username
+    reviews_data = []
+    for r in all_reviews:
+        user = User.query.filter_by(id=r.userID).first()
+        reviews_data.append({
+            "title": f"Movie ID: {r.movieID}",  # Or fetch movie title if needed
+            "Aname": user.username if user else "Unknown",
+            "description": r.content,
+            "review": "Reviewed"  # Or show a rating if you want
+        })
+
+    return render_template('admin_review.html', reviews=reviews_data)
 
 # change when other areas are done
 # api for searching movies, else return all movies
@@ -364,13 +365,8 @@ class UserAPI(Resource):
         db.session.complete()
 
         return {"message": f"User '{data['username']}' deleted successfully"}, 200
-            
 backendApi.add_resource(UserAPI, "/api/users")
 
-
-
-
-# change when other areas are done
 # api for getting, posting and deleteing favourites
 class FavouriteAPI(Resource):
     def get(self):
@@ -381,8 +377,36 @@ class FavouriteAPI(Resource):
             "movieID": f.movieID
         }for f in favourites])
         
+    
+    def post(self):
+        data = request.get_json()
 
-    @login_required
+        if not data.get("userID") or not data.get("movieID"):
+            return{"message": "Requires a userID and movieID to post a rating"},400
+
+        existing_favourite = Favourites.query.filter_by(userID=data["userID"], movieID=data["movieID"]).first()
+        if existing_favourite:
+            return {"error": "Favourite already exists"}, 400
+
+
+        new_favourite = Favourites(
+            userID = data["userID"],
+            movieID = data["movieID"],
+        )
+
+
+        db.session.add(new_favourite)
+        db.session.commit()
+        return {
+            "message": "New favourite successfully added",
+            "favourite": {
+                "id": new_favourite.id,
+                "userID": new_favourite.userID,
+                "movieID": new_favourite.movieID
+            }
+        }, 201
+
+    
     def delete(self):
         data = request.get_json()
 
@@ -405,11 +429,8 @@ class FavouriteAPI(Resource):
         db.session.commit()
 
         return {"message": f"User '{data['id']}' deleted successfully"}, 200
-
-
 backendApi.add_resource(FavouriteAPI, "/api/favourites")
 
-# change when other areas are done
 # api for getting and posting reviews
 class ReviewAPI(Resource):
     #@login_required
@@ -513,62 +534,83 @@ class ReviewAPI(Resource):
         }, 200
 backendApi.add_resource(ReviewAPI, "/api/reviews")
         
-
-# change when other areas are done
 # api for rating movies
 class RatingAPI(Resource):
-    @login_required
-    def get(self, movie_id):
-        user = session['user']
-        return {'rating': ratings.get(user,{}).get(movie_id)}, 200
-    
-    @login_required
-    def post(self, movie_id):
-        user = session['user']
-        data = request.json
-
-        ratings.setdefault(user, {})[movie_id] = data.get('rating')
-        return {'message': 'Rating saved'}, 201
-
-# change when other areas are done
-# api for admins reviewing reported reviews
-class AdminReportAPI(Resource):
-    @login_required
     def get(self):
-        if session.get('role') != 'admin':
-            return {"error": "Forbidden"}, 403
+        ratings = Rating.query.all()
+        return jsonify([{
+        "id": rat.id,
+        "userID": rat.userID,
+        "movieID": rat.movieID,
+        "score": rat.score,
+    } for rat in ratings])
+    
+    def post(self):
+        data = request.get_json()
 
-        return {"reports": reports}, 200
+        if not data.get("userID") or not data.get("movieID"):
+            return{"message": "Requires a userID and movieID to post a rating"},400
 
-    @login_required
-    def delete(self, report_id):
-        if session.get('role') != 'admin':
-            return {"error": "Forbidden"}, 403
+        existing_rating = Rating.query.filter_by(userID=data["userID"], movieID=data["movieID"]).first()
+        if existing_rating:
+            return {"error": "Rating already exists"}, 400
 
-        global reports
-        reports = [r for r in reports if r.get("id") != report_id]
 
-        return {"message": "Deleted"}, 200
+        new_rating = Rating(
+            userID = data["userID"],
+            movieID = data["movieID"],
+            score = data["score"],
+        )
+
+
+        db.session.add(new_rating)
+        db.session.commit()
+        return {
+            "message": "New rating successfully added",
+            "rating": {
+                "id": new_rating.id,
+                "userID": new_rating.userID,
+                "movieID": new_rating.movieID,
+                "score": new_rating.score
+            }
+        }, 201
+    
+    def put(self):
+        data = request.get_json()
+
+        if not data or not data.get("userID") or not data.get("movieID") or data.get("newRating") is None:
+            return {"message": "userID and movieID, newRating are required to update a rating"}, 400
+
+        # find zee rating
+        rating = Rating.query.filter_by(
+            userID=data["userID"],
+            movieID=data["movieID"]
+
+        ).first()
+
+        if not rating:
+            return {"error": "Review not found"}, 404
+
+        # Update content if provided
+        rating.score = data["newRating"]
+
+        db.session.commit()
+
+        return {
+            "message": "New rating successfully added",
+            "rating": {
+                "id": rating.id,
+                "userID": rating.userID,
+                "movieID": rating.movieID,
+                "score": rating.score
+            }
+        }, 201  
+backendApi.add_resource(RatingAPI, "/api/ratings")
 
 @app.route('/api/admin/test')
 @admin_required
 def admin_secret():
     return "If you see this, you are an Admin!"
-
-api.add_resource(MovieAPI,
-    '/api/movies',
-    '/api/movies/<int:movie_id>'
-)
-
-
-api.add_resource(RatingAPI,
-    '/api/movies/<int:movie_id>/rating'
-)
-
-api.add_resource(AdminReportAPI,
-    '/api/admin/reports',
-    '/api/admin/reports/<string:report_id>'
-)
 
 print("DB path:", os.path.abspath(db_path))
 
