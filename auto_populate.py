@@ -1,12 +1,25 @@
 from app import app, db
 from models import User, Favourites, Review, Rating, Report
+from werkzeug.security import generate_password_hash, check_password_hash
+
+
+
+#hashing passwords
+#john hashed password
+john_hashed_pw = generate_password_hash("password123")
+#jane hashed password
+jane_hashed_pw = generate_password_hash("securepass")
+#admin hashed password
+admin_hashed_pw = generate_password_hash("adminPW")
+
+
+
 
 #list of users
 users = [
-    {"username": "john", "password": "password123", "admin": False},
-    {"username":  "jane", "password": "securepass", "admin": False},
-    {"username": "admin", "password": "adminPW", "admin": True},
-    
+    {"username": "john", "password": john_hashed_pw, "admin": False},
+    {"username":  "jane", "password": jane_hashed_pw, "admin": False},
+    {"username": "admin", "password": admin_hashed_pw, "admin": True},   
 ]
 
 #user favourites

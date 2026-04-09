@@ -5,6 +5,7 @@ from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recom
 from models import db, User, Favourites, Review, Rating, Report
 import random
 import os
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__, template_folder = "html/template", static_folder = "static")
 
@@ -47,15 +48,21 @@ def login():
     #admin login 
     if request.method == 'POST':
         user = request.form.get('Username')
-        pw = request.form.get('Password')
+        password = request.form.get('Password')
 
         print(f"Login attempt for user: {user}")
 
-        # currently to login as admin 
-        # username = admin 
-        # password = adminke
-        
+        #verify user        
         db_user = User.query.filter_by(username = user).first()
+        if not db_user:
+            return{"Error":"User not found"}, 404
+        
+        #verify password
+        if not check_password_hash(db_user.password, password):
+            print("password entered", password)
+            print("password in db",db_user.password)
+            return {"error":"invalid password"}, 401
+            
         
         if db_user.admin:
             session['role'] = 'admin'
@@ -88,9 +95,11 @@ def signup():
         if existing_user:
             return 'Username already exists', 400
         
-        
+        #hash password
+        hashed_password = generate_password_hash(pw)
+
         #Add new user
-        new_user = User(username = user, password = pw)
+        new_user = User(username = user,  password = hashed_password)
         db.session.add(new_user)
         db.session.commit()
 
@@ -376,10 +385,13 @@ class UserAPI(Resource):
             return 'Username already exists', 400
 
 
+        #hash password
+        hashed_password = generate_password_hash(data["password"])
+        print (hashed_password)
         new_user = User(
             username = data["username"],
-            password = data["password"],
-            admin = False
+            password = hashed_password,
+            admin = False,
         )
 
 
@@ -441,6 +453,31 @@ class UserAPI(Resource):
 
         return {"message": f"User '{data['username']}' deleted successfully"}, 200
 backendApi.add_resource(UserAPI, "/api/users")
+
+class LoginAPI(Resource):
+    def post(self):
+        data = request.get_json()
+        if not data or not data.get("username") or not data.get("password"):
+            return{"error": "username and password required"},400
+        
+        #verify user
+        db_user = User.query.filter_by(username = data["username"]).first()
+        if not db_user:
+            return{"Error":"User not found"}, 404
+        
+        #verify password
+        if not db_user or not check_password_hash(db_user.password, data["password"]):
+            return {"error":"invalid details"}, 401
+        
+        return {
+            "message": "login successful",
+            "user": {
+                "id": db_user.id,
+                "username": db_user.username,
+                "admin": db_user.admin
+            }
+        }, 200
+backendApi.add_resource(LoginAPI, "/api/favourites")
 
 # api for getting, posting and deleteing favourites
 class FavouriteAPI(Resource):
