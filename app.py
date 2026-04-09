@@ -3,7 +3,7 @@ from flask_restful import Api, Resource
 from auth import ADMIN_PASSWD, login_required, admin_required
 from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recommendations ,get_top_rated_movies
 from flask_sqlalchemy import SQLAlchemy
-from models import db, User, Favourites
+from models import db, User, Favourites, Review
 import requests
 import random
 import os
@@ -37,29 +37,6 @@ def create_tables():
         print(f"Database created at {db_path}")
 
 create_tables()
-
-
-
-    
-
-#CRUD STATMENTS FAVOURITES
-@app.route('/favourite/add/<int:movieid>', methods=['POST'])
-def addFavourite(userid: int, movieid: int):
-    print("attempting to add favourite")
-    new_favourite = testfavourites(userID = userid, movieID = movieid)
-    db.session.add(new_favourite)
-    db.session.commit()
-    print("added favourite")
-    return redirect(url_for('movie', movieid=movieid))
-
-def removeFavourite(userid: int, movieid: int):
-    favourite = testfavourites.query.filterby(userID = userid, movieID = movieid).first()
-    if favourite:
-        db.session.delete()
-        db.session.commit()
-    return redirect(url_for('movie', movieid=movieid))
-
-
 
 
 #cookie - if anyone is logged in 
@@ -222,8 +199,7 @@ def movie_page(movie_id):
     genre_name = [c['name'] for c in genres]
 
     user = session['user']
-    if request.method == 'POST':
-        addFavourite(user.user_id, movie_id)
+    
 
     return render_template(
         'info.html',
@@ -330,7 +306,7 @@ class UserAPI(Resource):
         data = request.get_json()
 
         if not data.get("username"):
-            return{"message":"Username is required to find the user"}, 400
+            return{"message":"Username is required to update the user"}, 400
         
         user = User.query.filter_by(username=data["username"]).first()
         if not user:
@@ -393,7 +369,7 @@ class FavouriteAPI(Resource):
     def delete(self):
         data = request.get_json()
 
-        #validate input
+        
         if not data.get("userID") or not data.get("movieID"):
             return{"message": "user and move ID required to delete the favourite"}, 404
 
@@ -419,22 +395,107 @@ backendApi.add_resource(FavouriteAPI, "/api/favourites")
 # change when other areas are done
 # api for getting and posting reviews
 class ReviewAPI(Resource):
-    @login_required
-    def get(self, movie_id):
-        movie_reviews = [r for r in reviews if r.get('movie_id') == movie_id]
-        return {'reviews': movie_reviews}, 200
+    #@login_required
+    def get(self):
+        reviews = Review.query.all()
+        return jsonify([{   
+            "id": r.id,
+            "userID": r.userID,
+            "movieID": r.movieID,
+            "content": r.content,
+            } for r in reviews])
     
-    @login_required
-    def post(self, movie_id):
-        data = request.json
+    def post(self):
+        data = request.get_json()
 
-        data['id'] = str(uuid.uuid4())
-        data['movie_id'] = movie_id
-        data['user'] = session['user']
+        if not data.get("userID") or not data.get("movieID"):
+            return{"message": "Requires a userID and movieID to post a review"},400
 
-        reviews.append(data)
+        existing_review = Review.query.filter_by(userID=data["userID"], movieID=data["movieID"]).first()
+        if existing_review:
+            return 'Username already exists', 400
 
-        return {'message':'Review added'}, 200
+
+        new_review = Review(
+            userID = data["userID"],
+            movieID = data["movieID"],
+            content = data["content"]
+        )
+
+
+        db.session.add(new_review)
+        db.session.commit()
+        return {
+            "message": "New review successfully added",
+            "review": {
+                "id": new_review.id,
+                "userID": new_review.userID,
+                "movieID": new_review.movieID,
+                "content": new_review.content
+                }
+        }, 201
+        
+    
+    def put(self):
+        data = request.get_json()
+
+        if not data or not data.get("userID") or not data.get("movieID"):
+            return {"message": "userID and movieID are required to update a review"}, 400
+
+        # Find the review
+        review = Review.query.filter_by(
+            userID=data["userID"],
+            movieID=data["movieID"]
+        ).first()
+
+        if not review:
+            return {"error": "Review not found"}, 404
+
+        # Update content if provided
+        if data.get("newReview"):
+            review.content = data["newReview"]
+
+        db.session.commit()
+
+        return {
+            "message": "Review updated successfully",
+            "review": {
+                "id": review.id,
+                "userID": review.userID,
+                "movieID": review.movieID,
+                "content": review.content
+            }
+        }, 200
+
+    def delete(self):
+        data = request.get_json()
+
+        if not data.get("userID") or not data.get("movieID"):
+            return{"message": "user and move ID required to delete a review"}, 404
+
+        #find review
+
+        review = Review.query.filter_by(
+            userID=data["userID"],
+            movieID=data["movieID"]
+        ).first()
+
+        if not review:
+            return {"error": "Favourite not found"}, 404
+
+
+        db.session.delete(review)
+        db.session.commit()
+
+        return{
+            "message": "Review deleted successfully",
+            "review": {
+                "userID": review.userID,
+                "movieID": review.movieID
+            }
+        }, 200
+backendApi.add_resource(ReviewAPI, "/api/reviews")
+        
 
 # change when other areas are done
 # api for rating movies
@@ -482,11 +543,6 @@ api.add_resource(MovieAPI,
     '/api/movies/<int:movie_id>'
 )
 
-
-
-api.add_resource(ReviewAPI,
-    '/api/movies/<int:movie_id>/reviews'
-)
 
 api.add_resource(RatingAPI,
     '/api/movies/<int:movie_id>/rating'
