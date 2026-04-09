@@ -44,13 +44,6 @@ app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
 api = Api(app)
 
 
-favourites = {
-    'john': [
-        {'movie_id': 1493859},
-        {'movie_id': 500},
-        {'movie_id': 1084242}
-    ]
-}
 reviews = []
 ratings = {}
 reports = []
@@ -79,6 +72,9 @@ def login():
 
             if db_user.admin:
                 session['role'] = 'admin'
+                user = User.query.filter_by(username=session['user']).first()
+                global user_id
+                user_id = user.id
                 return redirect(url_for('home'))
             
             else:
@@ -242,6 +238,24 @@ def search():
 
     return render_template('search.html', movies=results)
 
+@app.route('/reviews')
+@login_required
+def reviews_page():
+    # Get all reviews from the database
+    all_reviews = Review.query.all()
+
+    # Join with user info to get username
+    reviews_data = []
+    for r in all_reviews:
+        user = User.query.filter_by(id=r.userID).first()
+        reviews_data.append({
+            "title": f"Movie ID: {r.movieID}",  # Or fetch movie title if needed
+            "Aname": user.username if user else "Unknown",
+            "description": r.content,
+            "review": "Reviewed"  # Or show a rating if you want
+        })
+
+    return render_template('admin_review.html', reviews=reviews_data)
 # change when other areas are done
 # api for searching movies, else return all movies
 class MovieAPI(Resource):
