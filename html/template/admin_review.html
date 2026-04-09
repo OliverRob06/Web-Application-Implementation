@@ -1,20 +1,17 @@
 {% extends 'layout/adminBase.html' %}
-{% from 'components/forms.html' import input %}
-{% from 'components/forms.html' import button %}
+{% from 'components/forms.html' import input, button, review %}
 
-{% block content %} 
-        <div class="row align-items-center g-0">
-            <div class="col-lg-10 pe-2 ps-4">
-                {{input('Search','text','Search for a movie', 'homeInput')}}    
-            </div>
-            <div class="col-lg-2 ps-2 pe-4">
-				{{button('Filter','submit','Filter','filterButton')}}
-            </div>
-        </div>
+{% block content %}
+<div class="row align-items-center g-0 mb-4">
+    <div class="col-lg-10 pe-2 ps-4">
+        {{ input('Search','text','Search for a movie', 'homeInput') }}
+    </div>
+    <div class="col-lg-2 ps-2 pe-4">
+        {{ button('Filter','submit','Filter','filterButton') }}
+    </div>
+</div>
 
-
-        {{review('reviews','BUngo','Jeff','BLabee bughh be bee blee Labee bughh be bee bleeLabee bughh be bee bleeLabee bughh be bee blee', '4.8')}}
-
-
-        
+{% for r in reviews %}
+{{ review(r.title, r.Aname, r.description, r.review) }}
+{% endfor %}
 {% endblock %}

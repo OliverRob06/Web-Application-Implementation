@@ -247,10 +247,8 @@ def movieapi(movie_id):
 @app.route('/reviews')
 @login_required
 def review():
-    # Get all reviews from the database
     all_reviews = Review.query.all()
 
-    # Join with user info to get username
     reviews_data = []
     for r in all_reviews:
         user = User.query.filter_by(id=r.userID).first()

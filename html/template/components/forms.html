@@ -1,30 +1,30 @@
 {% macro input(name , type ="text", placeholder="" , class ="") %}
-    <div>
-        <input  
-                name = "{{name}}"
-                type= "{{type}}"
-                placeholder="{{placeholder}}" 
-                class="text-center w-100 {{class}}">
-        </input>
-    </div>
+<div>
+    <input name="{{name}}" type="{{type}}" placeholder="{{placeholder}}" class="text-center w-100 {{class}}">
+    </input>
+</div>
 {% endmacro %}
 
 {% macro navButton(text ="", dest="", class ="") %}
-    <div>
-        <a href="{{ url_for(dest) }}"
-                class="text-center w-100 {{class}}">
-                {{text}}
-        </a>
-    </div>
+<div>
+    <a href="{{ url_for(dest) }}" class="text-center w-100 {{class}}">
+        {{text}}
+    </a>
+</div>
 {% endmacro %}
 
 {% macro button(name , type ="button" ,text ="", class ="") %}
-    <div>
-        <button  
-                name = "{{name}}"
-                type= "{{type}}"
-                class="text-center w-100 {{class}}">
+<div>
+    <button name="{{name}}" type="{{type}}" class="text-center w-100 {{class}}">
         {{text}}</button>
-    </div>
+</div>
 {% endmacro %}
 
+{% macro review(title, author, description, rating) %}
+<div class="review-card border rounded p-3 mb-3">
+    <h5>{{ title }}</h5>
+    <p><strong>Author:</strong> {{ author }}</p>
+    <p>{{ description }}</p>
+    <p><strong>Rating/Status:</strong> {{ rating }}</p>
+</div>
+{% endmacro %}
