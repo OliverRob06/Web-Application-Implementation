@@ -648,11 +648,13 @@ def admin_secret():
 
 @app.route('/admin_review')
 def admin_review():
-    return redirect(url_for('admin_reveiw'))
+    # Render the admin review page
+    return render_template('admin_review.html')
 
 @app.route('/admin_search')
 def admin_search():
-    return redirect(url_for('admin_search'))
+    # Render the admin search page
+    return render_template('admin_search.html')
 
 
 print("DB path:", os.path.abspath(db_path))
