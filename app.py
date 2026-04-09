@@ -168,16 +168,19 @@ def home():
 def account():
     favourites = Favourites.query.filter_by(userID=user_id).all()
 
-    favs = [f.movieID for f in favourites]
-
     favourite_movies = []
 
-    for m in favs:
-        favourite_movies.append({
-            "id": m.get("id"),
-            "title": m.get("title"),
-            "poster_path": m.get("poster_path")
-        })
+    for f in favourites:
+        # 2. f.movieID is an integer (e.g., 550)
+        # You MUST fetch the movie details dictionary from the API using that ID
+        movie_data = fetch_movie(f.movieID) 
+        
+        if movie_data:
+            favourite_movies.append({
+                "id": movie_data.get("id"),
+                "title": movie_data.get("title"),
+                "poster_path": f"https://image.tmdb.org/t/p/w500{movie_data.get('poster_path')}" if movie_data.get("poster_path") else None
+            })
 
     return render_template('account.html', movies=favourite_movies)
 
