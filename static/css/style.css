@@ -116,6 +116,13 @@ nav {
 	margin: 8px;
 }
 
+.rateInput{
+	height: 100%;
+	width: 100%;
+	margin: 0px;
+	padding: 25px 0px 25px 0px;
+}
+
 .navButton{
     font-size: 20px;
 	font-weight: bold;
@@ -203,9 +210,9 @@ input {
 }
 
 .reviewIMG {
-  transition: 0.2s;
-  height: 50px;
-  width: 40px;
+	transition: 0.2s;
+	height: 50px;
+	width: 40px;
 }
 
 .reviewTitle {
