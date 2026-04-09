@@ -380,9 +380,6 @@ class UserAPI(Resource):
         return {"message": f"User '{data['username']}' deleted successfully"}, 200
 backendApi.add_resource(UserAPI, "/api/users")
 
-
-
-
 # api for getting, posting and deleteing favourites
 class FavouriteAPI(Resource):
     def get(self):
@@ -446,7 +443,6 @@ class FavouriteAPI(Resource):
 
         return {"message": f"User '{data['id']}' deleted successfully"}, 200
 backendApi.add_resource(FavouriteAPI, "/api/favourites")
-
 
 # api for getting and posting reviews
 class ReviewAPI(Resource):
@@ -551,8 +547,6 @@ class ReviewAPI(Resource):
         }, 200
 backendApi.add_resource(ReviewAPI, "/api/reviews")
         
-
-# change when other areas are done
 # api for rating movies
 class RatingAPI(Resource):
     def get(self):
@@ -623,29 +617,16 @@ class RatingAPI(Resource):
                 "movieID": rating.movieID,
                 "score": rating.score
             }
-        }, 201
-    
+        }, 201  
 backendApi.add_resource(RatingAPI, "/api/ratings")
 
 # change when other areas are done
 # api for admins reviewing reported reviews
 class AdminReportAPI(Resource):
-    @login_required
     def get(self):
-        if session.get('role') != 'admin':
-            return {"error": "Forbidden"}, 403
 
-        return {"reports": reports}, 200
 
-    @login_required
-    def delete(self, report_id):
-        if session.get('role') != 'admin':
-            return {"error": "Forbidden"}, 403
-
-        global reports
-        reports = [r for r in reports if r.get("id") != report_id]
-
-        return {"message": "Deleted"}, 200
+backendApi.add_resource(AdminReportAPI, "/api/admin")
 
 @app.route('/api/admin/test')
 @admin_required
