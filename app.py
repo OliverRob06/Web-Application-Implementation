@@ -646,6 +646,15 @@ backendApi.add_resource(AdminReportAPI, "/api/admin")
 def admin_secret():
     return "If you see this, you are an Admin!"
 
+@app.route('/admin_review')
+def admin_review():
+    return redirect(url_for('admin_reveiw'))
+
+@app.route('/admin_search')
+def admin_search():
+    return redirect(url_for('admin_search'))
+
+
 print("DB path:", os.path.abspath(db_path))
 
 if __name__ == '__main__':
