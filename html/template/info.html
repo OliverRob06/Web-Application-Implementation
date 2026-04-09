@@ -2,6 +2,8 @@
 {% from 'components/forms.html' import button %}
 {% from 'components/user.html' import actorCardScroll %}
 {% from 'components/user.html' import infoReview %}
+{% from 'components/forms.html' import input %}
+
 
 {% block heading %} 
     {{ movie.title }}
@@ -60,6 +62,30 @@
         </div>
 
         </div>
+
+        <div class="container-fluid px-0">
+                <div class="row align-items-center">
+                    <div class="col-3 ps-0 pe-2 heading">
+                        <h1>
+                            Reviews
+                        </h1>            
+                    </div>
+                    <div class="col-2 ps-2 pe-2">
+                        {{button('review','submit','write a review','big_button btn')}}
+                    </div>
+                    <div class="col-4">
+                        <h1>
+                        </h1>    
+                    </div>
+                    <div class="col-1">
+                        {{input('rating','number','Rate','rateInput')}}
+                    </div>
+                    <div class="col-2 ps-2 pe-5">
+                        {{button('rate','submit','Rate','big_button btn')}}
+                    </div>
+                </div>
+            </div>
+
 
         {{infoReview('reviews','BUngo','Jeff','BLabee bughh be bee blee Labee bughh be bee bleeLabee bughh be bee bleeLabee bughh be bee blee')}}
     
