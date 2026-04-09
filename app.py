@@ -1,8 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, flash, render_template, request, redirect, url_for, session, jsonify
 from flask_restful import Api, Resource
 from auth import login_required, admin_required
 from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recommendations ,get_top_rated_movies
-from models import db, User, Favourites, Review, Rating
+from models import db, User, Favourites, Review, Rating, Report
 import random
 import os
 
@@ -223,6 +223,26 @@ def search():
         return render_template('search.html', movies=[])
 
     return render_template('search.html', movies=results)
+
+@app.route('/movie/add/<int:movie_id>', methods=['POST'])
+@login_required
+def movieapi(movie_id):
+    user_id = session.get('user_id') # Adjust based on how you store user info
+    
+    # 1. Check if it's already in the database to avoid duplicates
+    exists = Favourites.query.filter_by(user_id=user_id, movie_id=movie_id).first()
+    
+    if not exists:
+        # 2. Add to database
+        new_favorite = Favourites(user_id=user_id, movie_id=movie_id)
+        db.session.add(new_favorite)
+        db.session.commit()
+        flash("Movie added to your favorites!")
+    else:
+        flash("Movie is already in your list.")
+
+    # 3. Redirect back to the same movie page
+    return redirect(url_for('movie_page', movie_id=movie_id))
 
 @app.route('/editUser')
 @login_required
@@ -647,10 +667,61 @@ class RatingAPI(Resource):
         }, 201  
 backendApi.add_resource(RatingAPI, "/api/ratings")
 
+# change when other areas are done
+# api for admins reviewing reported reviews
+class AdminReportAPI(Resource):
+    def get(self):
+        reports = Report.query.all()
+        return jsonify([{
+            "id": r.id,
+            "userID": r.userID,
+            "reviewID": r.reviewID
+        }for r in reports])
+    
+    def post(self):
+        data = request.get_json()
+
+        if not data.get("userID") or not data.get("reviewID"):
+            return{"message": "Requires a userID and reviewID to make a report"},400
+
+        existing_report = Report.query.filter_by(userID=data["userID"], reviewID=data["reviewID"]).first()
+        if existing_report:
+            return {"error": "Rating already exists"}, 400
+
+
+        new_report = Rating(
+            userID = data["userID"],
+            reviewID = data["reviewID"]
+        )
+
+
+        db.session.add(new_report)
+        db.session.commit()
+        return {
+            "message": "New rating successfully added",
+            "rating": {
+                "id": new_report.id,
+                "userID": new_report.userID,
+                "reviewID": new_report.reviewID,
+            }
+        }, 201
+backendApi.add_resource(AdminReportAPI, "/api/reports")
+
 @app.route('/api/admin/test')
 @admin_required
 def admin_secret():
     return "If you see this, you are an Admin!"
+
+@app.route('/admin_review')
+def admin_review():
+    # Render the admin review page
+    return render_template('admin_review.html')
+
+@app.route('/admin_search')
+def admin_search():
+    # Render the admin search page
+    return render_template('admin_search.html')
+
 
 print("DB path:", os.path.abspath(db_path))
 
