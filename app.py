@@ -297,39 +297,26 @@ def editPass():
 
     return render_template('editPass.html')
 
-@app.route('/reviews', endpoint='review')
+@app.route('/add_favourite/<int:movie_id>', methods=['POST'])
 @login_required
-@admin_required 
-def admin_reviews_list():
-    # Get all reports with their associated reviews
-    reports = Report.query.all()
+def add_favourite(movie_id):
+    # Get the user object using the username stored in the session
+    user = User.query.filter_by(username=session['user']).first()
     
-    # Get unique reviews that have been reported
-    reported_reviews = []
-    seen_review_ids = set()
+    # Check if this movie is already in their favourites
+    exists = Favourites.query.filter_by(userID=user.id, movieID=movie_id).first()
     
-    for report in reports:
-        if report.reviewID not in seen_review_ids:
-            seen_review_ids.add(report.reviewID)
-            review = Review.query.filter_by(id=report.reviewID).first()
-            
-            if review:
-                user = User.query.filter_by(id=review.userID).first()
-                movie_data = fetch_movie(review.movieID)
-                
-                # Count how many reports this review has
-                report_count = Report.query.filter_by(reviewID=review.id).count()
-                
-                reported_reviews.append({
-                    "review_id": review.id,
-                    "movie_title": movie_data.get('title', 'Unknown Movie') if movie_data else 'Unknown Movie',
-                    "username": user.username if user else "Unknown",
-                    "content": review.content,
-                    "report_count": report_count,
-                    "movie_id": review.movieID
-                })
+    if not exists:
+        # Add to database using the correct model field names (userID, movieID)
+        new_fav = Favourites(userID=user.id, movieID=movie_id)
+        db.session.add(new_fav)
+        db.session.commit()
+        flash("Movie added to your favourites!")
+    else:
+        flash("Movie is already in your favourites.")
     
-    return render_template('admin_review.html', reviews=reported_reviews)
+    # Redirect back to the movie page (the 'movie_page' function handles the GET)
+    return redirect(url_for('movie_page', movie_id=movie_id))
 
 # change when other areas are done
 # api for searching movies, else return all movies
@@ -767,6 +754,40 @@ backendApi.add_resource(AdminReportAPI, "/api/reports")
 @admin_required
 def admin_secret():
     return "If you see this, you are an Admin!"
+
+@app.route('/reviews', endpoint='review')
+@login_required
+@admin_required 
+def admin_reviews_list():
+    # Get all reports with their associated reviews
+    reports = Report.query.all()
+    
+    # Get unique reviews that have been reported
+    reported_reviews = []
+    seen_review_ids = set()
+    
+    for report in reports:
+        if report.reviewID not in seen_review_ids:
+            seen_review_ids.add(report.reviewID)
+            review = Review.query.filter_by(id=report.reviewID).first()
+            
+            if review:
+                user = User.query.filter_by(id=review.userID).first()
+                movie_data = fetch_movie(review.movieID)
+                
+                # Count how many reports this review has
+                report_count = Report.query.filter_by(reviewID=review.id).count()
+                
+                reported_reviews.append({
+                    "review_id": review.id,
+                    "movie_title": movie_data.get('title', 'Unknown Movie') if movie_data else 'Unknown Movie',
+                    "username": user.username if user else "Unknown",
+                    "content": review.content,
+                    "report_count": report_count,
+                    "movie_id": review.movieID
+                })
+    
+    return render_template('admin_review.html', reviews=reported_reviews)
 
 @app.route('/admin/delete/<int:review_id>', methods=['POST'])
 @admin_required
