@@ -364,9 +364,13 @@ backendApi.add_resource(UserAPI, "/api/users")
 # change when other areas are done
 # api for getting, posting and deleteing favourites
 class FavouriteAPI(Resource):
-    @login_required
+    #@login_required
     def get(self):
-        favourites = Favourites.query.all()
+        user_id = request.args.get("userID")
+        if user_id:  # filter by userID if provided
+            favourites = Favourites.query.filter_by(userID=user_id).all()
+        else:
+            favourites = Favourites.query.all()
         return jsonify([{
             "id": f.id,
             "userID": f.userID,
