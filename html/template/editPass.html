@@ -1,8 +1,7 @@
 {% extends 'layout/logintemp.html' %}
-{% from 'components/forms.html' import input %}
-{% from 'components/forms.html' import button %}
+{% from 'components/forms.html' import input,button %}
 
-{% block title %}Log In{% endblock %}
+{% block title %}Edit Password{% endblock %}
 
 {% block content %}
 	<div class="container-fluid">
@@ -10,7 +9,7 @@
 		<div class="row justify-content-center text-center my-3">
 
 			<div class="col-8">
-                <h1 class="loginHeading">Log In</h1>   
+                <h1 class="loginHeading">Edit Password</h1>   
                 {{input('Current','password','Enter Current Password')}}
                 {{input('New','password','Enter New Password')}}
 			</div>
