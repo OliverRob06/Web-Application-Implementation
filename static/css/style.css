@@ -208,6 +208,10 @@ input {
   width: 40px;
 }
 
+.reviewTitle {
+	font-size: 62px;
+}
+
 .reviewIMG:hover {
 	content: url("/static/images/hoveredDeleteIcon.png");
 }

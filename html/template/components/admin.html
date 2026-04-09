@@ -8,7 +8,7 @@
 
                         <div class="flex-grow-1">
                             <div class="d-flex align-items-baseline gap-3 mb-1">
-                                <h1 class="fw-bold mb-0">{{title}}</h1>
+                                <h1 class="reviewTitle fw-bold mb-0">{{title}}</h1>
                                 <h4 class="fw-bold ms-3 mb-0">{{Aname}}</h4>
                             </div>
 
@@ -19,10 +19,11 @@
 
                         <div class="d-flex w-25 align-items-center gap-3">
                             <h2 class="review mb-0">5.4</h2>
-                            <img class="ms-auto" src="../static/images/tickIcon.png" alt="Approve Review IMG" height="45" width="50">
-                            <!-- <img class="reviewIMG" src="../static/images/unhoveredDeleteIcon.png" alt="Delete Review IMG" height="50" width="40"> -->
-                            <img class="reviewIMG" src="{{ url_for('static', filename='images/unhoveredDeleteIcon.png') }}"  alt="Delete Review IMG">
-                        
+                            <div class="btn">
+                                <img class="ms-auto" src="../static/images/tickIcon.png" alt="Approve Review IMG" height="45" width="50">
+                                <!-- <img class="reviewIMG" src="../static/images/unhoveredDeleteIcon.png" alt="Delete Review IMG" height="50" width="40"> -->
+                                <img class="reviewIMG" src="{{ url_for('static', filename='images/unhoveredDeleteIcon.png') }}"  alt="Delete Review IMG">
+                            </div>
                         </div>
 
                     </div>
