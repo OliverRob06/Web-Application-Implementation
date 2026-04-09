@@ -19,12 +19,12 @@
 
 <div class="container-fluid">
     <div class="row infoRow">
-        <div class="col-3">
+        <div class="col-4">
             {% if movie.poster_path %}
-                <img class="infoPoster" src="https://image.tmdb.org/t/p/w200{{ movie.poster_path }}">
+                <img class="infoPoster" src="https://image.tmdb.org/t/p/w300{{ movie.poster_path }}">
             {% endif %}
         </div>
-        <div class="col-3">
+        <div class="col-2 infoPara">
 
             <h3>Release Date</h3>
             <p> {{ movie.release_date }}</p>
@@ -50,13 +50,15 @@
             </p>
 
         </div>
-        <div class="col-6 ">
+        <div class="col-6 infoPara">
             <h3>  Overview </h3>
             <p>{{ movie.overview }}</p>
-
             {{ actorCardScroll(actors) }}
         </div>
+
+        </div>
+
     
-</div>
+
 
 {% endblock %}
