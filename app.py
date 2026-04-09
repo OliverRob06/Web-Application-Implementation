@@ -193,13 +193,13 @@ def account():
 
     favs = [f.movieID for f in favourites]
 
-    favourite_movies = []
+    movies = []
 
     for m in favs:
-        favourite_movies.append({
+        movies.append({
             "id": m.get("id"),
             "title": m.get("title"),
-            "poster_path": f"https://image.tmdb.org/t/p/w300{m.get('poster_path')}" if m.get("poster_path") else None
+            "poster_path": f"https://image.tmdb.org/t/p/w500{m.get('poster_path')}" if m.get("poster_path") else None
         })
 
     return render_template('account.html')
