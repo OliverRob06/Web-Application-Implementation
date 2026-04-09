@@ -7,12 +7,13 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     username = db.Column(db.String(20),nullable = False)
     password = db.Column(db.String(20), nullable = False)
+    admin = db.Column(db.Boolean, nullable = False, default = False)
 
 #favourites model to represent favourites in database
 class Favourites(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     #foreign keys to link to user and movie
-    userID = db.Column(db.Integer, db.ForeignKey('users_db.id'), nullable = False)
+    userID = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
     movieID = db.Column(db.Integer, nullable = False)
 
 #class reviews(db.Model):
