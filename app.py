@@ -627,6 +627,20 @@ class RatingAPI(Resource):
         }, 201  
 backendApi.add_resource(RatingAPI, "/api/ratings")
 
+# change when other areas are done
+# api for admins reviewing reported reviews
+class AdminReportAPI(Resource):
+    def get(self):
+        reviews = Review.query.all()
+        return jsonify([{
+            "id": r.id,
+            "userID": r.userID,
+            "movieID": r.movieID
+        }for r in reviews])
+
+
+backendApi.add_resource(AdminReportAPI, "/api/admin")
+
 @app.route('/api/admin/test')
 @admin_required
 def admin_secret():
