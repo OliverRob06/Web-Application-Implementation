@@ -3,7 +3,7 @@ from flask_restful import Api, Resource
 from auth import ADMIN_PASSWD, login_required, admin_required
 from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recommendations ,get_top_rated_movies
 from flask_sqlalchemy import SQLAlchemy
-from models import db, User
+from models import db, User, Favourites
 import requests
 import random
 import os
@@ -364,37 +364,78 @@ backendApi.add_resource(UserAPI, "/api/users")
 # change when other areas are done
 # api for getting, posting and deleteing favourites
 class FavouriteAPI(Resource):
-    @login_required
+    #@login_required
     def get(self):
-        user = session['user']
-        return {'favourites': favourites.get(user, [])}, 200
+        user_id = request.args.get("userID")
+        if user_id:  # filter by userID if provided
+            favourites = Favourites.query.filter_by(userID=user_id).all()
+        else:
+            favourites = Favourites.query.all()
+        return jsonify([{
+            "id": f.id,
+            "userID": f.userID,
+            "movieID": f.movieID
+        }for f in favourites])
         
-    @login_required
+
     def post(self):
-        user = session['user']
-        data = request.json
+        data = request.get_json()
 
-        if not data:
-            return {'error': 'No data provided'}
-        
-        data['id'] = str(uuid.uuid4())
+        if not data or not data.get("movieID") or not data.get("userID"):
+            return{"message": "user and move ID required to delete the favourite"}, 404
 
-        favourites.setdefault(user, []).append(data)
+        existing_favourite = Favourites.query.filter_by(
+            userID=data["userID"],
+            movieID=data["movieID"]
+        ).first()
 
-        return {'message': 'Added to favourites', 'data':data}, 201
+        if not existing_favourite:
+            return {"error": "Favourite already exists"}, 409
+
+
+        new_favourite = Favourites(
+            userID = data["userID"],
+            movieID = data["movieID"],
+        )
+
+
+        db.session.add(new_favourite)
+        db.session.commit()
+        return{
+            "message":"new favourite successfully added", 
+            "favourite":
+            { 
+                "id": new_favourite.id,
+                "userID": new_favourite.userID,
+                "movieID": new_favourite.movieID 
+            }
+            },201
 
     @login_required
-    def delete(self, fav_id):
-        user = session['user']
+    def delete(self):
+        data = request.get_json()
 
-        if user not in favourites:
-            return {'error':'No favourites found'}, 404
-        
-        original_length = len(favourites[user])
+        #validate input
+        if not data.get("userID") or not data.get("movieID"):
+            return{"message": "user and move ID required to delete the favourite"}, 404
 
-        favourites = [
-            f for f in favourites[user] if f.get('id') != fav_id
-        ]    
+        #find favourite
+
+        favourite = Favourites.query.filter_by(
+            userID=data["userID"],
+            movieID=data["movieID"]
+        ).first()
+
+        if not favourite:
+            return {"error": "Favourite not found"}, 404
+
+
+        db.session.delete(favourite)
+        db.session.commit()
+
+        return {"message": f"User '{data['id']}' deleted successfully"}, 200
+
+backendApi.add_resource(FavouriteAPI, "/api/favourites")
 
 # change when other areas are done
 # api for getting and posting reviews
@@ -457,28 +498,6 @@ class AdminReportAPI(Resource):
 def admin_secret():
     return "If you see this, you are an Admin!"
 
-api.add_resource(MovieAPI,
-    '/api/movies',
-    '/api/movies/<int:movie_id>'
-)
-
-api.add_resource(FavouriteAPI,
-    '/api/favourites',
-    '/api/favourites/<string:fav_id>'
-)
-
-api.add_resource(ReviewAPI,
-    '/api/movies/<int:movie_id>/reviews'
-)
-
-api.add_resource(RatingAPI,
-    '/api/movies/<int:movie_id>/rating'
-)
-
-api.add_resource(AdminReportAPI,
-    '/api/admin/reports',
-    '/api/admin/reports/<string:report_id>'
-)
 
 print("DB path:", os.path.abspath(db_path))
 
