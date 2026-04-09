@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from flask_restful import Api, Resource
 from auth import ADMIN_PASSWD, login_required, admin_required
 from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recommendations ,get_top_rated_movies
 from flask_sqlalchemy import SQLAlchemy
+from models import db, User
 import requests
 import random
 import os
@@ -21,38 +22,12 @@ os.makedirs(db_folder, exist_ok = True)
 #configuring SQL database
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+
+db.init_app(app)
+backendApi = Api(app)
 
 
-class users(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
-    username = db.Column(db.String(20),nullable = False)
-    password = db.Column(db.String(20), nullable = False)
 
-
-class reviews(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
-    content = db.Column(db.String(10000), nullable = False)
-    #foreign key Links To Users
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable = False)
-
-class favourites(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
-    #foreign keys to link to user and movie
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable = False)
-    #movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable = False)
-
-class ratings(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
-    score = db.Column(db.Integer, primary_key = True)
-    #foreign keys to link to user and movie
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable = False)
-    #movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable = False)
-
-class reports(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable = False)
-    #movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable = False)
 
 
 #creating tables
@@ -63,15 +38,35 @@ def create_tables():
 
 create_tables()
 
+
+
+    
+
+#CRUD STATMENTS FAVOURITES
+@app.route('/favourite/add/<int:movieid>', methods=['POST'])
+def addFavourite(userid: int, movieid: int):
+    print("attempting to add favourite")
+    new_favourite = testfavourites(userID = userid, movieID = movieid)
+    db.session.add(new_favourite)
+    db.session.commit()
+    print("added favourite")
+    return redirect(url_for('movie', movieid=movieid))
+
+def removeFavourite(userid: int, movieid: int):
+    favourite = testfavourites.query.filterby(userID = userid, movieID = movieid).first()
+    if favourite:
+        db.session.delete()
+        db.session.commit()
+    return redirect(url_for('movie', movieid=movieid))
+
+
+
+
 #cookie - if anyone is logged in 
 app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
 api = Api(app)
 
-# normie user logins before database
-users_db = {
-    'john': 'password123',
-    'jane': 'securepass',
-}
+
 favourites = {
     'john': [
         {'movie_id': 1493859},
@@ -106,10 +101,11 @@ def login():
             session['user'] = user
             return redirect(url_for('home'))
         
-        elif user in users_db and users_db[user] == pw:
-            # change when database is done
+        db_user = User.query.filter_by(username = user).first()
+        
+        if db_user and db_user.password == pw:
             session['role'] = 'user'
-            session['user'] = user
+            session['user'] = db_user.username
             return redirect(url_for('home'))
         
         else:
@@ -128,15 +124,22 @@ def signup():
         user = request.form.get('Username')
         pw = request.form.get('Password')
         
+        print("Creating new users with username:", user, "password", pw)
+
+
         # Check if user already exists
-        # change when database is done
-        if user in users_db:
+        existing_user = User.query.filter_by(username=user).first()
+        if existing_user:
             return 'Username already exists', 400
         
-        # Add new user
-        # change when database is done
-        users_db[user] = pw
+        
+        #Add new user
+        new_user = User(username = user, password = pw)
+        db.session.add(new_user)
+        db.session.commit()
+
         return redirect(url_for('login'))
+
     
     return render_template('signup.html')
 
@@ -186,7 +189,7 @@ def home():
 def account():
     return render_template('account.html')
 
-@app.route('/movie/<int:movie_id>')
+@app.route('/movie/<int:movie_id>', methods = ['GET','POST'])
 @login_required
 def movie_page(movie_id):
     movie = fetch_movie(movie_id)
@@ -217,6 +220,10 @@ def movie_page(movie_id):
     genres = movie.get('genres')
     genre_name = [c['name'] for c in genres]
 
+    user = session['user']
+    if request.method == 'POST':
+        addFavourite(user.user_id, movie_id)
+
     return render_template(
         'info.html',
         movie=movie,
@@ -243,7 +250,101 @@ class MovieAPI(Resource):
             return {'results':results}, 200
         
         return {'error':'No query provided'}, 400
+
+#api for getting, creating and deleting users
+class UserAPI(Resource):
+
+    #get method retrive all users from database
+    def get(self):
+        users = User.query.all()
+        return jsonify([{
+                "id": u.id,
+                "username": u.username,
+                "password": u.password,
+        }for u in users])
     
+    #create method
+    def post(self):
+        data = request.get_json()
+
+        if not data.get("username") or not data.get("password"):
+            return{"message": "Username and password are required"},400
+
+        existing_user = User.query.filter_by(username = data["username"]).first()
+        if existing_user:
+            return 'Username already exists', 400
+
+
+        new_user = User(
+            username = data["username"],
+            password = data["password"],
+        )
+
+
+        db.session.add(new_user)
+        db.session.commit()
+        return{
+            "message":"new user successfully added", 
+            "user":
+            { 
+                "id":new_user.id, 
+                "username":new_user.username 
+            }
+            },201
+
+    #update method
+    def put(self):
+        data = request.get_json()
+
+        if not data.get("username"):
+            return{"message":"Username is required to find the user"}, 400
+        
+        user = User.query.filter_by(username=data["username"]).first()
+        if not user:
+            return{"error": "User not Found"}, 404
+
+        #update username if provided and not duplicate
+        if data.get("newUsername"):
+            if User.query.filter_by(username=data["newUsername"]).first():
+                return{"message":"New username alreadly exists"}, 409 
+            user.username = data["newUsername"]
+    
+
+        #update password if provided
+        if data.get("newPassword"):
+            user.password = data["newPassword"]
+
+        db.session.commit()
+        return {
+            "message": "User updated successfully",
+            "user":
+            {
+                "id": user.id,
+                "username": user.username
+            }
+        }, 200
+
+
+    #delete method
+    def delete(self):
+        data = request.get_json()
+        if not data.get("username"):
+            return{"message":"Username is required to delete the user"}, 404
+        
+        user = User.query.filter_by(username=data["username"]).first()
+        if not user:
+            return{"error": "User not Found"}, 404
+
+        db.session.delete(user)
+        db.session.complete()
+
+        return {"message": f"User '{data['username']}' deleted successfully"}, 200
+            
+backendApi.add_resource(UserAPI, "/api/users")
+
+
+
+
 # change when other areas are done
 # api for getting, posting and deleteing favourites
 class FavouriteAPI(Resource):
@@ -363,6 +464,9 @@ api.add_resource(AdminReportAPI,
     '/api/admin/reports/<string:report_id>'
 )
 
+print("DB path:", os.path.abspath(db_path))
+
 if __name__ == '__main__':
-    
+    with app.app_context():
+        db.create_all()
     app.run(debug = True, host = '0.0.0.0', port = 8000)

@@ -177,44 +177,31 @@ input {
 	box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
 }
 
-.reviews {
-	display: flex;
-	flex-direction: column;
-	gap: 15px;
+
+/* -------------------------------------------- */
+/* admin CSS */
+
+.list-container {
+	background-color: #EDE8D0;
+	padding: 15px 25px 5px 30px;
+	box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
 }
-
-.review {
-    display: flex;
-
-  /* justify-content: space-between; */
-
-    background: snow;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-
-    padding: 15px;
-}
-
-/* not needed */
-.BoxTitles {
-    display: inline-block;
-}
-
-.squareButton {
-    height: 30px;
-    width: 40px;
-    float: right;
-    margin-left: 15px;
-} 
-
-#reviewDescription {
-    display: block;
-
-}
-
 .heading{
 	padding: 25px 0px 25px 0px;
 	margin: 0px -25px 0px 25px;
+}
+.review {
+	float: right;
+}
+
+.reviewIMG {
+  transition: 0.2s;
+  height: 50px;
+  width: 40px;
+}
+
+.reviewIMG:hover {
+	content: url("/static/images/hoveredDeleteIcon.png");
 }
 
 

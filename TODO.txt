@@ -4,8 +4,16 @@ error codes matching
 
 database for favourites, reports and user information:
     link crud statements to the databases to popualte them
+        users 
+        favourites
+        reviews
+        ratings
+        reports
+        
     query for finding all reports for x review and sorting them in order of most reported
     see if data is being stored effiecvtly for reviews
+    Add passwording hashing
+    Unhardcode admin access
 
 admin pages
 
@@ -18,6 +26,7 @@ get favourites to cards
 
 search to work
 
+incorect login page (with message)
         
 HOW HIGH 2
 http://127.0.0.1:8000/movie/532327

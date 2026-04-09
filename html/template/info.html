@@ -7,7 +7,9 @@
 {% endblock %}
 
 {% block heading2 %} 
-    {{button('favourite','submit','Favourite','Button btn')}} 
+    <form action="{{ url_for('movieapi', movieid=movieid) }}" method="POST">
+    {{button('favourite','submit','Favourite','Button btn')}}
+    </form>
 {% endblock %}
 
 {% block heading3 %} 

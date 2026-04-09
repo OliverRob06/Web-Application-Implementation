@@ -1,36 +1,74 @@
-<!doctype html>
-<html lang="en">
-    <head>
-        <title>Title</title>
-        <!-- Required meta tags -->
-        <meta charset="utf-8" />
-        <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1, shrink-to-fit=no"
-        />
+{% extends 'layout/base.html' %}
+{% from 'components/forms.html' import input %}
+{% from 'components/forms.html' import button %}
 
-        <!-- Bootstrap CSS v5.2.1 -->
-        <link
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-            rel="stylesheet"
-            integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
-            crossorigin="anonymous"
-        />
-        <link rel="stylesheet" href="/css/style.css">
-    </head>
+{% block content %} 
+        <div class="row align-items-center g-0">
+            <div class="col-lg-10 pe-2 ps-4">
+                {{input('Search','text','Search for a movie', 'homeInput')}}    
+            </div>
+            <div class="col-lg-2 ps-2 pe-4">
+				{{button('Filter','submit','Filter','filterButton')}}
+            </div>
+        </div>
 
-    <body>
-        <main>
-                <div class="row">
-                    <div class="Title">
-                        <h1>Admin Search</h1>
+
+
+        <div class="container-fluid d-flex align-items-center justify-content-center py-3">
+            <div class="row w-100 justify-content-center">
+                <div class="list-container col-11 col-md-11 bg-grey rounded-4">
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-baseline gap-3 mb-1">
+                                <h1 class="fw-bold mb-0">Movie Title</h1>
+                                <h4 class="fw-bold ms-3 mb-0">Account Name</h4>
+                            </div>
+
+                            <p class="lead">
+                                bla balalalalalals asjofnoasnd asodnfvjsdnfnaoisfnoiasn
+                            </p>
+                        </div>
+
+                        <div class="d-flex w-25 align-items-center gap-3">
+                            <h2 class="review mb-0">5.4</h2>
+                            <img class="ms-auto" src="../static/images/tickIcon.png" alt="Approve Review IMG" height="45" width="50">
+                            <!-- <img class="reviewIMG" src="../static/images/unhoveredDeleteIcon.png" alt="Delete Review IMG" height="50" width="40"> -->
+                            <img class="reviewIMG" src="{{ url_for('static', filename='images/unhoveredDeleteIcon.png') }}"  alt="Delete Review IMG">
+                        
+                        </div>
+
                     </div>
                 </div>
+            </div>
+        </div>
 
-        </main>
-        <!-- Bootstrap JavaScript Libraries -->
-        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+        <div class="container-fluid d-flex align-items-center justify-content-center py-3">
+            <div class="row w-100 justify-content-center">
+                <div class="list-container col-11 col-md-11 bg-grey rounded-4">
+                    <div class="d-flex justify-content-between align-items-center">
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
-    </body>
-</html>
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-baseline gap-3 mb-1">
+                                <h1 class="fw-bold mb-0">Movie Title</h1>
+                                <!-- <h4 class="fw-bold ms-3 mb-0">Account Name</h4> -->
+                            </div>
+
+                            <p class="lead">
+                                bla balalalalalals asjofnoasnd asodnfvjsdnfnaoisfnoiasn
+                            </p>
+                        </div>
+
+                        <div class="d-flex w-25 align-items-center gap-3">
+                            <h2 class="review mb-0 ms-auto me-3">5.0</h2>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        
+{% endblock %}

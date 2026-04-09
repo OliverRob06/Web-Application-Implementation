@@ -13,7 +13,7 @@
 
 {% macro actorCard(src ="",Name ="") %}
 <div class="card actorCard">
-    <img class="card-img" src="{{ src if src else url_for('static', filename='images/moviePlaceholder.png') }}"
+    <img class="card-img" src="{{ src if src else url_for('static', filename='images/actorPlaceholder.webp') }}"
         alt="{{ Name }}" />
     <div class="card-body  movieTitle">
         <h4 class="card-title">{{Name}}</h4>
@@ -38,7 +38,7 @@
     <h2 class="scrollHeading">Actors</h2>
     <div class="d-flex scroll">
         {% for actor in actors %}
-        {{ actorCard(('https://image.tmdb.org/t/p/w300' ~ actor.profile_path), actor.name)
+        {{ actorCard(('https://image.tmdb.org/t/p/w300' ~ actor.profile_path) if actor.profile_path else '', actor.name)
         }}
         {% endfor %}
     </div>
