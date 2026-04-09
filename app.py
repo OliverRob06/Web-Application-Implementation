@@ -193,16 +193,16 @@ def account():
 
     favs = [f.movieID for f in favourites]
 
-    movies = []
+    favourite_movies = []
 
     for m in favs:
-        movies.append({
+        favourite_movies.append({
             "id": m.get("id"),
             "title": m.get("title"),
             "poster_path": f"https://image.tmdb.org/t/p/w500{m.get('poster_path')}" if m.get("poster_path") else None
         })
 
-    return render_template('account.html')
+    return render_template('account.html', movies=favourite_movies)
 
 @app.route('/movie/<int:movie_id>', methods = ['GET','POST'])
 @login_required
