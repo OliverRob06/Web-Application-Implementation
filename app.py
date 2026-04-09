@@ -296,10 +296,10 @@ def editPass():
 
     return render_template('editPass.html')
 
-@app.route('/reviews')
+@app.route('/reviews', endpoint='review')
 @login_required
 @admin_required 
-def review():
+def admin_reviews_list():
     # Get all reports with their associated reviews
     reports = Report.query.all()
     
@@ -766,6 +766,23 @@ backendApi.add_resource(AdminReportAPI, "/api/reports")
 @admin_required
 def admin_secret():
     return "If you see this, you are an Admin!"
+
+@app.route('/admin/delete/<int:review_id>', methods=['POST'])
+@admin_required
+def delete_reported_review(review_id):
+    # Remove reports first, then the review
+    Report.query.filter_by(reviewID=review_id).delete()
+    Review.query.filter_by(id=review_id).delete()
+    db.session.commit()
+    return redirect(url_for('review'))
+
+@app.route('/admin/dismiss/<int:review_id>')
+@admin_required
+def dismiss_reports(review_id):
+    # Just clear the reports so it disappears from the admin dashboard
+    Report.query.filter_by(reviewID=review_id).delete()
+    db.session.commit()
+    return redirect(url_for('review'))
 
 # Change this route to use the logic
 @app.route('/admin_review')

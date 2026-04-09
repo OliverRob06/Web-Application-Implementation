@@ -13,6 +13,8 @@
 </div>
 
 {% for r in reviews %}
-{{ review(r.movie_title, r.username, "Total Reports: " ~ r.report_count, r.content) }}
-{% endfor %}p
+{{ review('admin', r.movie_title, r.username, "Reports: " ~ r.report_count, r.content, r.review_id) }}
+{% endfor %}
+
+{# This was the missing or misplaced tag #}
 {% endblock %}
