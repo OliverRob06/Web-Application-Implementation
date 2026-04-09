@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, j
 from flask_restful import Api, Resource
 from auth import login_required, admin_required
 from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recommendations ,get_top_rated_movies
-from models import db, User, Favourites, Review, Rating
+from models import db, User, Favourites, Review, Rating, Report
 import random
 import os
 
@@ -611,15 +611,44 @@ backendApi.add_resource(RatingAPI, "/api/ratings")
 # api for admins reviewing reported reviews
 class AdminReportAPI(Resource):
     def get(self):
-        reviews = Review.query.all()
+        reports = Report.query.all()
         return jsonify([{
             "id": r.id,
             "userID": r.userID,
-            "movieID": r.movieID
-        }for r in reviews])
+            "reviewID": r.reviewID
+        }for r in reports])
+    
+    def post(self):
+        data = request.get_json()
+
+        if not data.get("userID") or not data.get("reviewID"):
+            return{"message": "Requires a userID and reviewID to make a report"},400
+
+        existing_report = Report.query.filter_by(userID=data["userID"], reviewID=data["reviewID"]).first()
+        if existing_report:
+            return {"error": "Rating already exists"}, 400
 
 
-backendApi.add_resource(AdminReportAPI, "/api/admin")
+        new_report = Rating(
+            userID = data["userID"],
+            reviewID = data["reviewID"]
+        )
+
+
+        db.session.add(new_report)
+        db.session.commit()
+        return {
+            "message": "New rating successfully added",
+            "rating": {
+                "id": new_report.id,
+                "userID": new_report.userID,
+                "reviewID": new_report.reviewID,
+            }
+        }, 201
+    
+
+
+backendApi.add_resource(AdminReportAPI, "/api/reports")
 
 @app.route('/api/admin/test')
 @admin_required
