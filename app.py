@@ -154,20 +154,21 @@ def account():
                 "poster_path": f"https://image.tmdb.org/t/p/w500{movie_data.get('poster_path')}" if movie_data.get("poster_path") else None
             })
 
-    # Get user's reviews
-    user_reviews = Review.query.filter_by(userID=user_id).all()
-    reviews_data = []
+    user = User.query.filter_by(username=session['user']).first()
     
-    for review in user_reviews:
-        movie_data = fetch_movie(review.movieID)
-        reviews_data.append({
-            "movie_id": review.movieID,
-            "movie_title": movie_data.get('title', 'Unknown Movie') if movie_data else 'Unknown Movie',
-            "content": review.content,
-            "review_id": review.id
+    user_reviews = Review.query.filter_by(userID=user.id).all()
+    
+    formatted_reviews = []
+    for rev in user_reviews:
+        movie_data = fetch_movie(rev.movieID)
+        formatted_reviews.append({
+            "review_id": rev.id,
+            "movie_title": movie_data.get('title', 'Unknown Movie'),
+            "content": rev.content,
+            "movie_id": rev.movieID
         })
 
-    return render_template('account.html', movies=favourite_movies, reviews=reviews_data)
+    return render_template('account.html', user=user, movies=favourite_movies, reviews=formatted_reviews)
 
 @app.route('/movie/<int:movie_id>', methods = ['GET','POST'])
 @login_required
@@ -770,7 +771,6 @@ def admin_secret():
 @app.route('/admin/delete/<int:review_id>', methods=['POST'])
 @admin_required
 def delete_reported_review(review_id):
-    # Remove reports first, then the review
     Report.query.filter_by(reviewID=review_id).delete()
     Review.query.filter_by(id=review_id).delete()
     db.session.commit()
@@ -779,7 +779,6 @@ def delete_reported_review(review_id):
 @app.route('/admin/dismiss/<int:review_id>')
 @admin_required
 def dismiss_reports(review_id):
-    # Just clear the reports so it disappears from the admin dashboard
     Report.query.filter_by(reviewID=review_id).delete()
     db.session.commit()
     return redirect(url_for('review'))

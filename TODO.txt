@@ -23,4 +23,4 @@ add your reviews to your acconut page
 
 add function to add favourite
 
-approve and dismiss reviews
+approve and dismiss reviews - done just html problems
