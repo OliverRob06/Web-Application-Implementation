@@ -10,11 +10,9 @@
 			<div class="col-2">
 				{{navButton('Home','home','navButton')}}
 			</div>
-			<div class="col-1">
-			</div>
 			<div class="col-6">
-				<form action="">
-					{{input('navSearch','text','Search for a movie', 'navInput')}}
+				<form method="GET" action="{{ url_for('search') }}">
+					{{input('q','text','Search for a movie', 'navInput')}}
 				</form>
 			</div>
 			<div class="col-1">

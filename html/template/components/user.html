@@ -21,13 +21,12 @@
 </div>
 {% endmacro %}
 
-
 {% macro MovieCardScroll(movies) %}
 <div class="container-fluid">
-    <h2 class="scrollHeading">Because you liked movie</h2>
     <div class="d-flex scroll">
         {% for movie in movies %}
-        {{ movieCard(movie.id , "https://image.tmdb.org/t/p/w300" ~ movie.poster_path, movie.title) }}
+        {{ movieCard(movie.id, 'https://image.tmdb.org/t/p/w300' ~ movie.poster_path if movie.poster_path else '',
+        movie.title) }}
         {% endfor %}
     </div>
 </div>

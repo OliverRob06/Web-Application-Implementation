@@ -18,13 +18,7 @@ database for favourites, reports and user information:
 admin pages
 
 Eddie:
-actors images
-
-genres
-
 get favourites to cards
-
-search to work
 
 incorect login page (with message)
         
