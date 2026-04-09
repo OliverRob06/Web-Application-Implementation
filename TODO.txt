@@ -14,9 +14,13 @@ Oliver:
 admin pages
 
 Eddie:
-get favourites to cards
-
 incorect login page (with message)
-        
-HOW HIGH 2
-http://127.0.0.1:8000/movie/532327
+when lggin as username that njust chnaged
+
+add reveiws to account page
+
+add your reviews to your acconut page
+
+add function to add favourite
+
+approve and dismiss reviews
