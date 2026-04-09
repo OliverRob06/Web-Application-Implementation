@@ -106,6 +106,9 @@ def login():
             
             else:
                 session['role'] = 'user'
+                user = User.query.filter_by(username=session['user']).first()
+                global user_id
+                user_id = user.id
                 return redirect(url_for('home'))
         
         else:
@@ -146,8 +149,6 @@ def signup():
 @app.route('/home')
 @login_required
 def home():
-    user = User.query.filter_by(username=session['user']).first()
-    user_id = user.id
     favourites = Favourites.query.filter_by(userID=user_id).all()
     
     favs = [f.movieID for f in favourites]
@@ -188,6 +189,19 @@ def home():
 @app.route('/account')
 @login_required
 def account():
+    favourites = Favourites.query.filter_by(userID=user_id).all()
+
+    favs = [f.movieID for f in favourites]
+
+    favourite_movies = []
+
+    for m in favs:
+        favourite_movies.append({
+            "id": m.get("id"),
+            "title": m.get("title"),
+            "poster_path": f"https://image.tmdb.org/t/p/w300{m.get('poster_path')}" if m.get("poster_path") else None
+        })
+
     return render_template('account.html')
 
 @app.route('/movie/<int:movie_id>', methods = ['GET','POST'])
