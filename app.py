@@ -316,26 +316,25 @@ def editPass():
     return render_template('editPass.html')
 
 @app.route('/add_favourite/<int:movie_id>', methods=['POST'])
+@login_required
 def add_favourite(movie_id):
-
+    # Get the user object using the username stored in the session
     user = User.query.filter_by(username=session['user']).first()
     
-    url = "http://127.0.0.1:8000/api/favourites"
+    # Check if this movie is already in their favourites
+    exists = Favourites.query.filter_by(userID=user.id, movieID=movie_id).first()
     
-    data = {
-        "userID": user.id,
-        "movieID": movie_id
-    }
-
-    try:
-        response = requests.post(url, json=data)
-        
-        if response.status_code == 201:
-            return jsonify({"success": True, "message": "Added"}), 201
-        
-        return jsonify({"success": False, "message": "Already exists or error"}), 400
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+    if not exists:
+        # Add to database using the correct model field names (userID, movieID)
+        new_fav = Favourites(userID=user.id, movieID=movie_id)
+        db.session.add(new_fav)
+        db.session.commit()
+        flash("Movie added to your favourites!")
+    else:
+        flash("Movie is already in your favourites.")
+    
+    # Redirect back to the movie page (the 'movie_page' function handles the GET)
+    return redirect(url_for('movie_page', movie_id=movie_id))
             
 # change when other areas are done
 # api for searching movies, else return all movies
