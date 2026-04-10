@@ -803,7 +803,7 @@ class ReviewsByReportCountAPI(Resource):
         return jsonify([
             {
                 "id": review.id,
-                "userid": review.userID,
+                "userID": review.userID,
                 "movieid": review.movieID,
                 "content": review.content,
                 "ReportCount": report_count
