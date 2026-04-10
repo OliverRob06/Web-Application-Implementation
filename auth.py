@@ -10,17 +10,17 @@ def require_api_key(role = None):
             key = request.headers.get("X-API-KEY")
             
             if not key:
-                return jsonify({"error": "Invalid or Missing API key"}), 403
+                return ({"error": "Invalid or Missing API key"}), 403
             
             key_entry = APIkey.query.filter_by(key=key).first()
 
             if not key_entry:
-                return jsonify({"error":"Invalid API key"}), 403
+                return ({"error":"Invalid API key"}), 403
             
             #role check
             
             if role and key_entry.role != role:
-                return jsonify({"error": "Not have premission"}), 403
+                return ({"error": "Not have premission"}), 403
             
             key_entry.request_count +=1
             db.session.commit()

@@ -439,13 +439,14 @@ def submit_review(movie_id):
         'rating': int(request.form.get("rating"))
     }
 
+
     try:
-        response = requests.post(url, json=data)
+        response = requests.post(url, json=data, headers = USER_HEADERS)
 
         if response.status_code == 201:
             return redirect(url_for('movie_page', movie_id=movie_id))
 
-        return jsonify({
+        return ({
             "success": False,
             "error": response.json()
         }), response.status_code
@@ -455,6 +456,7 @@ def submit_review(movie_id):
 
 
 @app.route('/report_review/<int:review_id>', methods=['POST'])
+
 def report_review(review_id):
     user = User.query.filter_by(username=session['user']).first()
     movie_id = request.form.get('movie_id')
@@ -467,7 +469,7 @@ def report_review(review_id):
     }
 
     try:
-        response = requests.post(url, json=data)
+        response = requests.post(url, json=data, headers = USER_HEADERS)
 
         if response.status_code == 201:
             return redirect(url_for('movie_page', movie_id=movie_id))
@@ -475,7 +477,7 @@ def report_review(review_id):
         elif response.status_code == 409:
             return redirect(url_for('movie_page', movie_id=movie_id))
 
-        return jsonify({
+        return ({
             "success": False,
             "error": response.json()
         }), response.status_code
@@ -977,6 +979,12 @@ def admin_delete(review_id):
     else:
         flash("Error: Could not delete review.")
     return redirect(url_for('reviews'))
+
+@app.route('/admin_search')
+def admin_search():
+    # Render the admin search page
+    return render_template('admin_search.html')
+
 
 print("DB path:", os.path.abspath(db_path))
 
