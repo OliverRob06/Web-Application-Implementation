@@ -57,7 +57,9 @@ def login():
     if request.method == 'POST':
         url = "http://localhost:8000/api/login"
 
+        user = None
         user = request.form.get('Username')
+        password = None
         password = request.form.get('Password')
 
         print(f"Login attempt for user: {user}")
@@ -71,66 +73,14 @@ def login():
             response = requests.post(url, json=data)
 
             if response.status_code == 200:
+                
                 return redirect(url_for('home'))
             return render_template('login_error.html')
         except requests.exceptions.RequestException as e:
             print(f"API Error: {e}")
-
-        
-
+     
 
     return render_template('login.html')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    '''admin login 
-    if request.method == 'POST':
-        user = request.form.get('Username')
-        password = request.form.get('Password')
-
-        print(f"Login attempt for user: {user}")
-
-        #verify user        
-        db_user = User.query.filter_by(username = user).first()
-        if not db_user:
-            return{"Error":"User not found"}, 404
-        
-        #verify password
-        if not check_password_hash(db_user.password, password):
-            print("password entered", password)
-            print("password in db",db_user.password)
-            return {"error":"invalid password"}, 401
-            
-        
-        if db_user.admin:
-            session['role'] = 'admin'
-        else:
-            session['role'] = 'user'
-
-        # store username in session
-        session['user'] = db_user.username
-
-        return redirect(url_for('home'))
-
-    return render_template('login.html')'''
 
 @app.route('/logout', methods=['POST'])
 def logout():
