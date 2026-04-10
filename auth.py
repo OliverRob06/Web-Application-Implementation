@@ -1,46 +1,31 @@
 from functools import wraps
-from flask import redirect, request, jsonify, session, url_for
-import os
-import hmac
+from flask import request, jsonify
+from models import APIkey, db
 
-#ADMIN PLACEHOLDER PASSWORD
-ADMIN_PASSWD = os.environ.get("ADMIN_PASSWD", "adminkey")
 
-def check_string(input_string, target_string):
-    # more secure comparison
-    return hmac.compare_digest(input_string, target_string)
-
-#if the user isnt logged in send user to index.html
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user' not in session:
-            # If it's an API request, return JSON instead
-            if request.path.startswith('/api/'):
-                return {"error": "Unauthorized"}, 401
+def require_api_key(role = None):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            key = request.headers.get("X-API-KEY")
             
-            return redirect(url_for('index'))
-        
-        return f(*args, **kwargs)
-    
-    return decorated_function
+            if not key:
+                return jsonify({"error": "Invalid or Missing API key"}), 403
+            
+            key_entry = APIkey.query.filter_by(key=key).first()
 
-def admin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if session.get('role') == 'admin':
+            if not key_entry:
+                return jsonify({"error":"Invalid API key"}), 403
+            
+            #role check
+            
+            if role and key_entry.role != role:
+                return jsonify({"error": "Not have premission"}), 403
+            
+            key_entry.request_count +=1
+            db.session.commit()
+
             return f(*args, **kwargs)
-        
-        auth_header = request.headers.get('Authorization')
+        return decorated_function
+    return decorator
 
-        # if nothing entered in the password field
-        if not auth_header:
-            return jsonify({'error': 'Missing credentials'}), 401
-        
-        # if the password is wrong
-        if not check_string(auth_header, ADMIN_PASSWD):
-            return jsonify({'error': 'Invalid admin password'}), 403
-
-        return f(*args, **kwargs)
-
-    return decorated_function
