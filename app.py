@@ -940,7 +940,7 @@ backendApi.add_resource(ReportAPI, "/api/reports")
 
 def reviews():
 
-    resp = requests.get("http://127.0.0.1:8000/api/reports")
+    resp = requests.get("http://127.0.0.1:8000/api/reports", headers = ADMIN_HEADERS)
     data = resp.json()
 
     reported_reviews = []
@@ -972,7 +972,7 @@ def admin_dismiss(review_id):
 
 def admin_delete(review_id):
     url = f"http://127.0.0.1:8000/api/reports?delete_review={review_id}"
-    resp = requests.delete(url, headers = ADMIN_HEADERSM)
+    resp = requests.delete(url, headers = ADMIN_HEADERS)
     
     if resp.status_code == 200:
         flash("Review and reports deleted successfully.")
