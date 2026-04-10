@@ -253,7 +253,7 @@ def editUser():
 @app.route('/editPass')
 @login_required
 def editPass():
-    return render_template('userPass.html')
+    return render_template('editPass.html')
 
 
 @app.route('/reviews')
