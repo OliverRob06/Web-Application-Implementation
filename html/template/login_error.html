@@ -1,1 +1,27 @@
-error
+{% extends 'layout/logintemp.html' %}
+{% from 'components/forms.html' import navButton %}
+
+{% block title %}7Movies{% endblock %}
+
+
+{% block heading %} 
+    7Movies
+{% endblock %}
+
+{% block heading2 %} 
+	<img class = "logo offset-7" src="{{ url_for('static', filename='images/7movieslogo.png') }}" alt="image">
+{% endblock %}
+
+    {% block content %}
+            <div class="container-fluid">
+                <div class="row justify-content-center text-center my-5">
+                    <div class="col-lg-4">
+                        <div class="loginHeading">
+                            <h1>An Error has occured.<br></h1>
+                            <strong></strong><h2><br>Maintinence may take a short while if occuring. </strong><br> we are trying our best to fix the issue(s)</h2>
+                        </div>
+                            {{navButton('Return','login','big_button btn')}}
+                    </div>
+                </div>
+            </div>
+    {% endblock %}
