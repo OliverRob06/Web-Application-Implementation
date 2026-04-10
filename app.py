@@ -352,9 +352,11 @@ def add_favourite(movie_id):
     try:
         # API CALL instead of db.session.add
         response = requests.post(url, json=data)
-        return jsonify({"success": response.ok}), response.status_code
+        return redirect(url_for('movie_page', movie_id=movie_id))
+        
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+    
 
 @app.route('/remove_favourite/<int:movie_id>', methods=['POST'])
 @login_required
