@@ -1,4 +1,4 @@
-{% macro review(name, title, Aname, description, review, review_id=None) %}
+{% macro review(title, username, description, review, review_id) %}
 
 <div class="container-fluid d-flex align-items-center justify-content-center py-3">
     <div class="row w-100 justify-content-center">
@@ -7,51 +7,39 @@
 
                 <div class="d-flex align-items-baseline gap-3 mb-1">
                     <h1 class="fw-bold mb-0">{{title}}</h1>
-                    <h4 class="fw-bold ms-3 mb-0">{{Aname}}</h4>
+                    <h4 class="fw-bold ms-3 mb-0">{{username}}</h4>
                 </div>
-
-    
             </div>
 
-                <div class="d-flex align-items-center gap-3">
-                    <h2 class="review mb-0">{{review}}</h2>
+            <div class="d-flex align-items-center gap-3">
+                <h2 class="review mb-0">{{review}}</h2>
 
-                    {% if review_id %}
-                    <div class="btn p-0 ms-auto">
-                        <a href="{{ url_for('dismiss_reports', review_id=review_id) }}">
-                            <img class="ms-auto" src="{{ url_for('static', filename='images/tickIcon.png') }}"
-                                alt="Approve Review IMG" height="45" width="50">
-                        </a>
-                    </div>
+                {# Check if review_id exists to show the action buttons #}
+                {% if review_id %}
+                <div class="d-flex gap-2 ms-auto">
+                    <form action="{{ url_for('admin_dismiss', review_id=review_id) }}" method="POST" class="m-0">
+                        <button type="submit" class="btn p-0 bg-transparent border-0">
+                            <img src="{{ url_for('static', filename='images/tickIcon.png') }}" alt="Approve Review IMG"
+                                height="45" width="50">
+                        </button>
+                    </form>
 
-                    <div class="btn p-0">
-                        <form action="{{ url_for('delete_reported_review', review_id=review_id) }}" method="POST">
-                            <button type="submit" style="background: none; border: none; padding: 0;">
-                                <img class="reviewIMG"
-                                    src="{{ url_for('static', filename='images/unhoveredDeleteIcon.png') }}"
-                                    alt="Delete Review IMG" height="50" width="40">
-                            </button>
-                        </form>
-                    </div>
-                    {% else %}
-                    <div class="btn p-0 ms-auto">
-                        <img class="ms-auto" src="{{ url_for('static', filename='images/tickIcon.png') }}"
-                            alt="Approve Review IMG" height="45" width="50">
-                    </div>
-
-                    <div class="btn p-0">
-                        <img class="reviewIMG" src="{{ url_for('static', filename='images/unhoveredDeleteIcon.png') }}"
-                            alt="Delete Review IMG" height="50" width="40">
-                    </div>
-                    {% endif %}
-
-                    <p class="lead float-start">
-                        {{description}}
-                    </p>
-
+                    <form action="{{ url_for('admin_delete', review_id=review_id) }}" method="POST" class="m-0">
+                        <button type="submit" class="btn p-0 bg-transparent border-0">
+                            <img class="reviewIMG"
+                                src="{{ url_for('static', filename='images/unhoveredDeleteIcon.png') }}"
+                                alt="Delete Review IMG" height="50" width="40">
+                        </button>
+                    </form>
                 </div>
+                {% endif %}
+
+                <p class="lead float-start">
+                    {{description}}
+                </p>
 
             </div>
+
         </div>
     </div>
 </div>
@@ -84,36 +72,3 @@
     </div>
 </div>
 {% endmacro %}
-
-
-<!-- {% macro review(name , title, Aname, description) %}
-<div class="container-fluid d-flex align-items-center justify-content-center py-3">
-            <div class="row w-100 justify-content-center">
-                <div class="list-container col-11 col-md-11 bg-grey rounded-4">
-                    <div class="d-flex justify-content-between align-items-center">
-
-                        <div class="flex-grow-1">
-                            <div class="d-flex align-items-baseline gap-3 mb-1">
-                                <h1 class="fw-bold mb-0">{{title}}</h1>
-                                <h4 class="fw-bold ms-3 mb-0">{{Aname}}</h4>
-                            </div>
-
-                            <p class="lead">
-                                {{description}}
-                            </p>
-                        </div>
-
-                        <div class="d-flex w-25 align-items-center gap-3">
-                            <h2 class="review mb-0">5.4</h2>
-                            <div class="btn">
-                                <img class="ms-auto" src="../static/images/tickIcon.png" alt="Approve Review IMG" height="45" width="50">
-                                <!-- <img class="reviewIMG" src="../static/images/unhoveredDeleteIcon.png" alt="Delete Review IMG" height="50" width="40"> -->
-                                <img class="reviewIMG" src="{{ url_for('static', filename='images/unhoveredDeleteIcon.png') }}"  alt="Delete Review IMG">
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-{% endmacro %}  -->

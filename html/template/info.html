@@ -92,11 +92,9 @@
     </div>
 
 
-    {{infoReview('reviews','BUngo','Jeff','BLabee bughh be bee blee Labee bughh be bee bleeLabee bughh be bee bleeLabee
-    bughh be bee blee BLabee bughh be bee blee Labee bughh be bee bleeLabee bughh be bee bleeLabee
-    bughh be bee blee BLabee bughh be bee blee Labee bughh be bee bleeLabee bughh be bee bleeLabee
-    bughh be bee blee BLabee bughh be bee blee Labee bughh be bee bleeLabee bughh be bee bleeLabee
-    bughh be bee blee')}}
+    {% for r in reviews %}
+    {{ infoReview( r.username, r.content, r.rating ) }}
+    {% endfor %}
 
 
 
