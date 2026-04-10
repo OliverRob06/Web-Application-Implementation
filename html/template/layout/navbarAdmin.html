@@ -7,16 +7,13 @@
 				<img class="logo" src="{{ url_for('static', filename='images/7movieslogo.png') }}" alt="image">
 			</div>
 			<div class="col-2">
-				{{navButton('movies','admin_search','navButton')}}
-			</div>
-			<div class="col-2">
 				{{navButton('reviews','reviews','navButton')}}
 			</div>
 			<div class="col-3">
 			</div>
 			<div class="col-2">
 				<form action="{{ url_for('logout') }}" method="POST">
-					{{navButton('Logout','logout','navButton')}}
+					{{navButton('logout','submit','Log Out','navButton')}}
 				</form>
 			</div>
 			<div class="col-1">
