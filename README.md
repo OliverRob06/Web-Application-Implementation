@@ -1,9 +1,8 @@
 # Web-Application-Implementation#
 admin login:
 
-    'admin' : 'adminkey'
     username: admin
-    password: adminkey
+    password: adminPW
     
 
 
