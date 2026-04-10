@@ -182,15 +182,20 @@ def account():
         print(f"Fav API Error: {e}")
 
     # API CALL for Reviews
-    formatted_reviews = []
+    your_reviews = []
     try:
-        rev_resp = requests.get(f"http://127.0.0.1:8000/api/reviews?username={user.username}") # Note: Your ReviewAPI.get returns ALL reviews currently
-        
-            
+        rev_resp = requests.get(f"http://127.0.0.1:8000/api/reviews?userID={user.id}") 
+        if rev_resp.status_code == 200:
+            for r in rev_resp.json():
+                your_reviews.append({
+                    "rating": r.get("rating"),
+                    "content": r.get("content"),
+                    "movie_id": r.get("movieID")
+                })
     except Exception as e:
         print(f"Review API Error: {e}")
 
-    return render_template('account.html', user=user, movies=favourite_movies, reviews=formatted_reviews)
+    return render_template('account.html', user=user, movies=favourite_movies, reviews=your_reviews)
 
 @app.route('/movie/<int:movie_id>', methods = ['GET','POST'])
 @login_required
@@ -615,7 +620,8 @@ class ReviewAPI(Resource):
                 "id": r.id,
                 "userID": r.userID,
                 "movieID": r.movieID,
-                "content": r.content
+                "content": r.content,
+                "rating": r.rating,
             } for r in reviews])
 
         else:
@@ -625,6 +631,7 @@ class ReviewAPI(Resource):
                 "userID": r.userID,
                 "movieID": r.movieID,
                 "content": r.content,
+                "rating": r.rating
                 } for r in reviews])
     
     def post(self):
@@ -803,7 +810,7 @@ class ReviewsByReportCountAPI(Resource):
         return jsonify([
             {
                 "id": review.id,
-                "userid": review.userID,
+                "userID": review.userID,
                 "movieid": review.movieID,
                 "content": review.content,
                 "ReportCount": report_count
