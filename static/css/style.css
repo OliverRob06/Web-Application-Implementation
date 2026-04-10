@@ -2,114 +2,116 @@ body {
 	background-color: #FCFCF4;
 	overflow-x: hidden;
 }
-.star{
+
+.star {
 	width: 100%;
 	height: 100%;
 }
 
-.star:hover{
+.star:hover {
 	content: url("/static/images/star.png");
 }
 
-.logo{
+.logo {
 	width: 75px;
 	height: 75px;
 }
 
-.profile{
+.profile {
 	width: 59px;
 	height: 59px;
 	margin: 8px 8px 8px 8px;
 }
 
-.infoRow{
+.infoRow {
 	box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
 	background-color: #FAFAEB;
 }
 
-.infoPoster{
+.infoPoster {
 	padding: 25px;
 	width: 100%;
 	height: 100%;
 }
 
-.infoPara{
+.infoPara {
 	padding: 35px;
 }
-.d-flex{
+
+.d-flex {
 	flex-wrap: nowrap;
 	overflow-x: auto
 }
 
 
-.movieCard{
+.movieCard {
 	width: 250px;
 	height: 500px;
-	margin: 24px;   
+	margin: 24px;
 	padding: 0px;
 	flex: 0 0 auto;
 }
 
-.actorCard{
+.actorCard {
 	width: 175px;
 	height: 250px;
-	margin: 24px;   
+	margin: 24px;
 	padding: 0px;
 	flex: 0 0 auto;
 }
 
 
-.card{
+.card {
 	border: 0px;
 	background-color: #FAFAEB;
 	box-shadow: 0 3px 15px rgba(0, 0, 0, 0.25);
-	transition:  background-color 0.2s ease,transform 0.2s ease, box-shadow 0.2s ease;
+	transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.card:hover{
+.card:hover {
 	background-color: #f9f9e2;
 	transform: translateY(-4px);
-		color: black;
+	color: black;
 	box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
 }
 
-.movieTitle{
+.movieTitle {
 	text-align: center;
 	height: 100px;
 	display: flex;
-    align-items: center; 
-    justify-content: center; 
+	align-items: center;
+	justify-content: center;
 	font-family: Copperplate, "Copperplate Gothic Light", fantasy;
 	border-top: 1px solid black;
 }
 
-.scrollHeading{
+.scrollHeading {
 	margin-left: 25px;
 }
 
-.card-img{
+.card-img {
 	width: 100%;
-	height: 75%;   
+	height: 75%;
 	object-fit: cover;
 	border-bottom-left-radius: 0;
 	border-bottom-right-radius: 0;
 }
 
-.card-title{
+.card-title {
 	font-size: 20px;
 }
 
-.card-body{
+.card-body {
 	padding: 5px;
 }
 
 nav {
-    top: 0;
+	top: 0;
 	width: 100%;
 	position: fixed;
 	background-color: #BBE19F;
-    color: black;
-    z-index: 100;  
+	color: black;
+	z-index: 100;
 	height: 75px;
 	box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
 }
@@ -119,7 +121,7 @@ nav {
 	margin: 8px;
 }
 
-.rateInput{
+.rateInput {
 	height: 100%;
 	width: 100%;
 	margin: 0px;
@@ -131,28 +133,28 @@ nav {
 	font-weight: bold;
 	text-decoration: none;
 	color: black;
-	margin: 0px 0px 0px 0px;   
+	margin: 0px 0px 0px 0px;
 	padding: 25px 50px 25px 50px;
-    transition: background-color 0.2s ease;
+	transition: background-color 0.2s ease;
 	top: 0;
 	width: 100%;
 	position: fixed;
 	background-color: #BBE19F;
-    z-index: 100;  
+	z-index: 100;
 	height: 75px;
 	/* box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25); */
 	width: 200px !important;
 	border: 0px;
 }
 
-.navButton{
-    font-size: 20px;
+.navButton {
+	font-size: 20px;
 	font-weight: bold;
 	text-decoration: none;
 	color: black;
-	margin: 0px 0px 0px 0px;   
+	margin: 0px 0px 0px 0px;
 	padding: 25px 50px 25px 50px;
-    transition: background-color 0.2s ease;
+	transition: background-color 0.2s ease;
 }
 
 .navButton:hover {
@@ -166,26 +168,26 @@ nav {
 	padding: 0;
 }
 
-.block{
+.block {
 	display: inline;
 }
 
-.big_button{
-    background-color: #BBE19F;
-    font-size: 25px;
+.big_button {
+	background-color: #BBE19F;
+	font-size: 25px;
 	font-weight: bold;
-    margin: 75px 0px 75px 0px;
-    padding: 25px 0px 25px 0px;
-    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+	margin: 75px 0px 75px 0px;
+	padding: 25px 0px 25px 0px;
+	transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.signUpBig_button{
-    margin: 50px 0px 0px 0px;	
+.signUpBig_button {
+	margin: 50px 0px 0px 0px;
 }
 
-.filterButton{
+.filterButton {
 	padding: 11px 0px 11px 0px;
-    margin: 35px 15px 35px 15px;
+	margin: 35px 15px 35px 15px;
 }
 
 
@@ -198,19 +200,19 @@ input {
 	font-style: italic;
 }
 
-.homeInput{
-    margin: 0px;	
+.homeInput {
+	margin: 0px;
 }
 
 
-.signUpInput{
+.signUpInput {
 	margin-top: 85px;
 }
 
 .big_button:hover {
 	background-color: #99BA7E;
 	transform: translateY(-4px);
-		color: black;
+	color: black;
 	box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
 }
 
@@ -223,10 +225,12 @@ input {
 	padding: 15px 25px 5px 30px;
 	box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
 }
-.heading{
+
+.heading {
 	padding: 25px 0px 25px 0px;
 	margin: 0px -25px 0px 25px;
 }
+
 .review {
 	float: right;
 }
@@ -247,27 +251,27 @@ input {
 
 .LargeButton {
 	background-color: #BBE19F;
-    font-size: 25px;
+	font-size: 25px;
 	font-weight: bold;
-    /* margin: 75px 0px 75px 0px; */
-    padding: 25px 0px 25px 0px;
-    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+	/* margin: 75px 0px 75px 0px; */
+	padding: 25px 0px 25px 0px;
+	transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 /* ----------------------------- */
 
-.heading2{
+.heading2 {
 	padding: 25px 0px 25px 0px;
 	margin: 0px 25px 0px -25px;
 }
 
-.heading3{
+.heading3 {
 	padding: 25px 0px 25px 0px;
 	margin: 0px -25px 0px 25px;
 }
 
 
-.loginHeading{
+.loginHeading {
 	padding: 0;
 	margin: 0;
 }
@@ -279,40 +283,41 @@ h1 {
 }
 
 
-h2{
+h2 {
 	font-family: Copperplate, "Copperplate Gothic Light", fantasy;
 	font-size: 29px !important;
 }
 
 
-.row{
+.row {
 	padding-left: 0px;
 	padding-right: 0px;
 
 }
 
-.container-fluid{
+.container-fluid {
 	padding: 0;
 }
 
-.container{
+.container {
 	padding: 0px 0px 0px 0px;
 	margin: 0px 0px 0px 0px;
 }
 
-a{
+a {
 	text-decoration: none;
 }
 
-.Footer{
-    text-align: center;
-    color: white;
-    background-color: rgb(22, 23, 26); 
-    padding: 10px;
+.Footer {
+	text-align: center;
+	color: white;
+	background-color: rgb(22, 23, 26);
+	padding: 10px;
 }
 
 .auto-expand {
-    /* overflow: hidden; */
-    resize: none;  
-    min-height: 120px;  
+	/* overflow: hidden; */
+	resize: none;
+	min-height: 120px;
+	padding: 10px;
 }
