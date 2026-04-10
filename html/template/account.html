@@ -26,12 +26,12 @@ Welcome, {{ session['user'] }}!
 
 {{ MovieCardScroll(movies,"Your Favourites") }}
 
-<!-- <div class="container mt-5">
+<div class="container mt-5">
     <h2 class="scrollHeading">My Reviews</h2>
-    {% for r in reviews %}    
-    {{ accountReview('user', r.movie_title, r.content, r.score ) }}
+    {% for r in reviews %}
+    {{ accountReview('user', r.movie_title, r.content, r.rating ) }}
     {% else %}
     <p class="text-muted ms-2">You haven't written any reviews yet.</p>
     {% endfor %}
-</div> -->
+</div>
 {% endblock %}
