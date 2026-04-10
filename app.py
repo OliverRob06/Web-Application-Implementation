@@ -815,22 +815,23 @@ class ReviewsByReportCountAPI(Resource):
             db.session.query(
                 Review,
                 func.count(Report.id).label("ReportCount")
-                )
+            )
             .outerjoin(Report, Review.id == Report.reviewID)
             .group_by(Review.id)
-            .orderby(func.count(Report.id).desc)
+            .order_by(func.count(Report.id).desc())
             .all()
-
         )
 
-        return jsonify ([{
-            "id": review.id,
-            "userid": review.userID,
-            "movieid": review.movieID,
-            "content": review.content,
-            "ReportCount": ReportCount
-        }
-        ] for review, ReportCount in results)
+        return jsonify([
+            {
+                "id": review.id,
+                "userid": review.userID,
+                "movieid": review.movieID,
+                "content": review.content,
+                "ReportCount": report_count
+            }
+            for review, report_count in results
+        ])
 backendApi.add_resource(ReviewsByReportCountAPI, "/api/sortedByReports")        
    
 
