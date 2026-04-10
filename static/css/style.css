@@ -312,7 +312,7 @@ a{
 }
 
 .auto-expand {
-    overflow: hidden;
+    /* overflow: hidden; */
     resize: none;  
     min-height: 120px;  
 }
