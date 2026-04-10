@@ -69,7 +69,7 @@
                     <h2 class="review mb-0">{{ rating }}</h2>
                     <form action="{{ url_for('report_review', review_id=review_id) }}" method="POST" class="m-0">
                         <input type="hidden" name="movie_id" value="{{ movie_id }}">
-                        {{ button('report','submit','Report','filterButton big_button btn', onclick="alert('Review submitted!')") }}
+                        {{ button('report','submit','Report','filterButton big_button btn'), onclick="alert('Review submitted!')"}}
                     </form>
                 </div>
             </div>
