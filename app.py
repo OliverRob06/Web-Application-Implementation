@@ -757,8 +757,9 @@ class ReportAPI(Resource):
                 Review,
                 func.count(Report.id).label("report_count")
             )
-            .outerjoin(Report, Review.id == Report.reviewID)
+            .join(Report, Review.id == Report.reviewID) # Changed to .join (Inner Join)
             .group_by(Review.id)
+            .having(func.count(Report.id) > 0) # Only show if count is 1 or more
             .order_by(func.count(Report.id).desc())
             .all()
         )
@@ -780,20 +781,28 @@ class ReportAPI(Resource):
         dismiss_id = request.args.get("dismiss_review")
         delete_id = request.args.get("delete_review")
 
+        # Inside ReportAPI delete method
         if dismiss_id:
-            Report.query.filter_by(reviewID=dismiss_id).delete()
+            Report.query.filter_by(reviewID=int(dismiss_id)).delete()
             db.session.commit()
             return {"message": "Dismissed"}, 200
 
         if delete_id:
-            Report.query.filter_by(reviewID=delete_id).delete()
-            Review.query.filter_by(id=delete_id).delete()
+            # 1. Delete the reports FIRST (the children)
+            Report.query.filter_by(reviewID=int(delete_id)).delete()
+            
+            # 2. Delete the review SECOND (the parent)
+            review_to_del = Review.query.get(int(delete_id))
+            if review_to_del:
+                db.session.delete(review_to_del)
+            
             db.session.commit()
             return {"message": "Deleted"}, 200
-        
+                
         return {"error": "No action specified"}, 400
-
 backendApi.add_resource(ReportAPI, "/api/reports")
+
+
 @app.route('/api/admin/test')
 @admin_required
 def admin_secret():
@@ -830,16 +839,18 @@ def admin_dismiss(review_id):
     # This triggers the 'dismiss_review' logic in your ReportAPI.delete method
     url = f"http://127.0.0.1:8000/api/reports?dismiss_review={review_id}"
     resp = requests.delete(url) 
-    flash("Reports dismissed.")
     return redirect(url_for('reviews'))
 
 @app.route('/admin/delete_review/<int:review_id>', methods=['POST'])
 @admin_required
 def admin_delete(review_id):
-    # This triggers the 'delete_review' logic in your ReportAPI.delete method
     url = f"http://127.0.0.1:8000/api/reports?delete_review={review_id}"
     resp = requests.delete(url)
-    flash("Review and reports deleted.")
+    
+    if resp.status_code == 200:
+        flash("Review and reports deleted successfully.")
+    else:
+        flash("Error: Could not delete review.")
     return redirect(url_for('reviews'))
 
 @app.route('/admin_search')
