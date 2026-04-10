@@ -10,13 +10,15 @@
 {% endblock %}
 
 {% block heading2 %}
-<form action="{{ url_for('movieapi', movie_id=movie.id) }}" method="POST">
-    <img class="star btn" type="submit" src="{{ url_for('static', filename='images/starHover.png') }}" alt="image">
+<form action="{{ url_for('add_favourite', movie_id=movie.id) }}" method="POST">
+    <button type="submit" style="background: none; border: none; padding: 0;">
+        <img class="star btn" src="{{ url_for('static', filename='images/starHover.png') }}" alt="Favourite Star">
+    </button>
 </form>
 {% endblock %}
 
 {% block heading3 %}
-<h2>{{ movie.vote_average }} /10</h2>
+<h2>{{ "%.1f"|format(movie.vote_average) }} / 10</h2>
 {% endblock %}
 
 
