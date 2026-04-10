@@ -352,7 +352,8 @@ def add_favourite(movie_id):
     try:
         # API CALL instead of db.session.add
         response = requests.post(url, json=data)
-        return redirect(url_for('movie_page', movie_id=movie_id))
+        if response.status_code == 201:
+            return redirect(url_for('movie_page', movie_id=movie_id))
         
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
@@ -617,7 +618,7 @@ class FavouriteAPI(Resource):
         ).first()
 
         print(favourite)
-        
+
         if not favourite:
             return {"error": "Favourite not found"}, 404
 
