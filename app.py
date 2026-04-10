@@ -190,7 +190,7 @@ def account():
                 your_reviews.append({
                     "rating": r.get("rating"),
                     "content": r.get("content"),
-                    "movie_id": r.get("movie_id"),
+                    "movie_id": r.get("movie_id")
                 })
     except Exception as e:
         print(f"Review API Error: {e}")
