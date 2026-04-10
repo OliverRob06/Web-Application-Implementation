@@ -470,7 +470,7 @@ class UserAPI(Resource):
             return{"error": "User not Found"}, 404
 
         db.session.delete(user)
-        db.session.complete()
+        db.session.commit()
 
         return {"message": f"User '{data['username']}' deleted successfully"}, 200
 backendApi.add_resource(UserAPI, "/api/users")
