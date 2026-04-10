@@ -511,12 +511,12 @@ backendApi.add_resource(LoginAPI, "/api/login")
 class FavouriteAPI(Resource):
     def get(self):
         #need a way of getting user
-        username = data["username"]
-        username = User.query.filter_by(username = username).first()
+        
+        username = User.query.filter_by(username = session["user"]).first()
 
-        if username != "None":
+        if username != None:
 
-            favourites = Favourites.query.filter_by(userID = username.id).first()
+            favourites = Favourites.query.filter_by(userID = username.id).all()
             return jsonify([{
                 "id": f.id,
                 "userID": f.userID,
@@ -525,7 +525,7 @@ class FavouriteAPI(Resource):
         
         else:
             username = request.form.get('Username')
-            username = User.query.filter_by(username = username).first()
+            username = User.query.filter_by(username = username).all()
             print(username)
             favourites = Favourites.query.all()
             return jsonify([{
