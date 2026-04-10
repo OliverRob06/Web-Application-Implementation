@@ -184,19 +184,9 @@ def account():
     # API CALL for Reviews
     formatted_reviews = []
     try:
-        rev_resp = requests.get("http://127.0.0.1:8000/api/reviews") # Note: Your ReviewAPI.get returns ALL reviews currently
-        if rev_resp.status_code == 200:
-            all_reviews = rev_resp.json()
-            # Filter for this specific user
-            user_reviews = [r for r in all_reviews if r['userID'] == user.id]
-            for rev in user_reviews:
-                movie_data = fetch_movie(rev['movieID'])
-                formatted_reviews.append({
-                    "review_id": rev['id'],
-                    "movie_title": movie_data.get('title', 'Unknown'),
-                    "content": rev['content'],
-                    "movie_id": rev['movieID']
-                })
+        rev_resp = requests.get(f"http://127.0.0.1:8000/api/reviews?username={user.username}") # Note: Your ReviewAPI.get returns ALL reviews currently
+        
+            
     except Exception as e:
         print(f"Review API Error: {e}")
 
@@ -620,10 +610,14 @@ class ReviewAPI(Resource):
     
     def get(self):
 
-        username = User.query.filter_by(username = session.get('user')).first()
+
+        username_from_arg = request.args.get('username')
+        username_from_session = session.get('user')
+
+        target_name = username_from_arg or username_from_session
         
-        if username != None:
-            reviews = Review.query.filter_by(userID = username.id).all()
+        if target_name:
+            reviews = Review.query.filter_by(userID = target_name.id).all()
             return jsonify([{
                 "id": r.id,
                 "userID": r.userID,
@@ -733,7 +727,7 @@ backendApi.add_resource(ReviewAPI, "/api/reviews")
         
 # api for rating movies
 class RatingAPI(Resource):
-    @require_login
+    
     def get(self):
         ratings = Rating.query.all()
         return jsonify([{
