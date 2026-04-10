@@ -184,7 +184,7 @@ def account():
     # API CALL for Reviews
     formatted_reviews = []
     try:
-        rev_resp = requests.get("http://127.0.0.1:8000/api/reviews") # Note: Your ReviewAPI.get returns ALL reviews currently
+        rev_resp = requests.get("http://127.0.0.1:8000/api/reviews")
         if rev_resp.status_code == 200:
             all_reviews = rev_resp.json()
             # Filter for this specific user
@@ -195,7 +195,7 @@ def account():
                     "review_id": rev['id'],
                     "movie_title": movie_data.get('title', 'Unknown'),
                     "content": rev['content'],
-                    "movie_id": rev['movieID']
+                    "score": rev['score']
                 })
     except Exception as e:
         print(f"Review API Error: {e}")
@@ -269,11 +269,6 @@ def search():
 
     return render_template('search.html', movies=results)
 
-@app.route('/movie/add/<int:movie_id>', methods=['POST'])
-@login_required
-def movieapi(movie_id):
-    return redirect(url_for('movie_page', movie_id=movie_id))
-
 @app.route('/editUser', methods=['GET', 'POST'])
 @login_required
 def editUser():
@@ -343,7 +338,6 @@ def add_favourite(movie_id):
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
     
-
 @app.route('/remove_favourite/<int:movie_id>', methods=['POST'])
 @login_required
 def remove_favourite(movie_id):
@@ -362,7 +356,6 @@ def remove_favourite(movie_id):
         
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-    
 
 # change when other areas are done
 # api for searching movies, else return all movies
