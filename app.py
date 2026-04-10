@@ -54,34 +54,39 @@ def index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    #admin login 
     if request.method == 'POST':
-        user = request.form.get('Username')
+        url = "http://127.0.0.1:8000/api/login"
+        username = request.form.get('Username')
         password = request.form.get('Password')
 
-        print(f"Login attempt for user: {user}")
-
-        #verify user        
-        db_user = User.query.filter_by(username = user).first()
-        if not db_user:
-            return{"Error":"User not found"}, 404
+        data = {
+            "username": username,
+            "password": password
+        }
         
-        #verify password
-        if not check_password_hash(db_user.password, password):
-            print("password entered", password)
-            print("password in db",db_user.password)
-            return {"error":"invalid password"}, 401
+        try:
+            session['user'] = username
+            print(session.get('user'))
             
-        
-        if db_user.admin:
-            session['role'] = 'admin'
-        else:
-            session['role'] = 'user'
+            response = requests.post(url, json=data)
 
-        # store username in session
-        session['user'] = db_user.username
+            if response.status_code == 200:
+                result = response.json()
+                is_admin = result.get('user', {}).get('admin')
 
-        return redirect(url_for('home'))
+                session['user'] = username
+                session['role'] = 'admin' if is_admin else 'user'
+
+                if is_admin:
+                    return redirect(url_for('admin_search'))
+                else:
+                    return redirect(url_for('home'))
+            
+            return render_template('login_error.html')
+
+        except requests.exceptions.RequestException as e:
+            print(f"API Error: {e}")
+            return "Connection Error", 500
 
     return render_template('login.html')
 
@@ -120,10 +125,20 @@ def signup():
 @app.route('/home')
 @login_required
 def home():
-    user = User.query.filter_by(username=session['user']).first()
-    favourites = Favourites.query.filter_by(userID=user.id).all()
+    user = User.query.filter_by(username=session.get('user')).first()
+    if not user:
+        return redirect(url_for('login'))
     
-    favs = [f.movieID for f in favourites]
+    try:
+        response = requests.get(f"http://127.0.0.1:8000/api/favourites?username={user.username}")
+        if response.status_code == 200:
+            favourites_data = response.json() # This is the list of dicts from your API
+            favs = [f['movieID'] for f in favourites_data]
+        else:
+            favs = []
+    except Exception as e:
+        print(f"API Error: {e}")
+        favs = []
     
     if not favs:
         movies = get_top_rated_movies()
@@ -132,13 +147,10 @@ def home():
         for movie_id in favs:
             all_recommended.extend(get_recommendations(movie_id))
         
-        # Deduplicate
-        seen = {m['id'] for m in all_recommended} # Example set comprehension
         unique_recommended = list({v['id']:v for v in all_recommended}.values())
         random.shuffle(unique_recommended)
         movies = unique_recommended[:20]
     
-    # Ensure movies is never empty/None before this loop
     formatted_movies = []
     for m in movies:
         formatted_movies.append({
@@ -147,44 +159,46 @@ def home():
             "poster_path": f"https://image.tmdb.org/t/p/w300{m.get('poster_path')}" if m.get("poster_path") else None
         })
 
-    if session.get('role') == 'admin':
-        return render_template('admin_search.html')
-    else:
-        return render_template('home.html', movies=formatted_movies)
+    return render_template('home.html', movies=formatted_movies)
 
 @app.route('/account')
 @login_required
 def account():
-    user = User.query.filter_by(username=session['user']).first()
-    user_id = user.id
-
-    # Get user's favourites
-    favourites = Favourites.query.filter_by(userID=user_id).all()
+    user = User.query.filter_by(username=session.get('user')).first()
+    
     favourite_movies = []
+    try:
+        fav_resp = requests.get(f"http://127.0.0.1:8000/api/favourites?username={user.username}")
+        if fav_resp.status_code == 200:
+            for f in fav_resp.json():
+                movie_data = fetch_movie(f['movieID']) 
+                if movie_data:
+                    favourite_movies.append({
+                        "id": movie_data.get("id"),
+                        "title": movie_data.get("title"),
+                        "poster_path": f"https://image.tmdb.org/t/p/w500{movie_data.get('poster_path')}" if movie_data.get('poster_path') else None
+                    })
+    except Exception as e:
+        print(f"Fav API Error: {e}")
 
-    for f in favourites:
-        movie_data = fetch_movie(f.movieID) 
-        
-        if movie_data:
-            favourite_movies.append({
-                "id": movie_data.get("id"),
-                "title": movie_data.get("title"),
-                "poster_path": f"https://image.tmdb.org/t/p/w500{movie_data.get('poster_path')}" if movie_data.get("poster_path") else None
-            })
-
-    user = User.query.filter_by(username=session['user']).first()
-    
-    user_reviews = Review.query.filter_by(userID=user.id).all()
-    
+    # API CALL for Reviews
     formatted_reviews = []
-    for rev in user_reviews:
-        movie_data = fetch_movie(rev.movieID)
-        formatted_reviews.append({
-            "review_id": rev.id,
-            "movie_title": movie_data.get('title', 'Unknown Movie'),
-            "content": rev.content,
-            "movie_id": rev.movieID
-        })
+    try:
+        rev_resp = requests.get("http://127.0.0.1:8000/api/reviews") # Note: Your ReviewAPI.get returns ALL reviews currently
+        if rev_resp.status_code == 200:
+            all_reviews = rev_resp.json()
+            # Filter for this specific user
+            user_reviews = [r for r in all_reviews if r['userID'] == user.id]
+            for rev in user_reviews:
+                movie_data = fetch_movie(rev['movieID'])
+                formatted_reviews.append({
+                    "review_id": rev['id'],
+                    "movie_title": movie_data.get('title', 'Unknown'),
+                    "content": rev['content'],
+                    "movie_id": rev['movieID']
+                })
+    except Exception as e:
+        print(f"Review API Error: {e}")
 
     return render_template('account.html', user=user, movies=favourite_movies, reviews=formatted_reviews)
 
@@ -193,9 +207,17 @@ def account():
 def movie_page(movie_id):
     movie = fetch_movie(movie_id)
     credits = fetch_movie_credits(movie_id)
+    user = User.query.filter_by(username=session['user']).first()
 
-    if not movie or not credits:
-        return "Movie not found", 404
+    # API CALL to check if this movie is a favorite
+    is_favourite = False
+    try:
+        response = requests.get(f"http://127.0.0.1:8000/api/favourites?username={user.username}")
+        if response.status_code == 200:
+            favs = response.json()
+            is_favourite = any(f['movieID'] == movie_id for f in favs)
+    except:
+        pass
     
     cast = credits.get('cast', [])
     crew = credits.get('crew', [])
@@ -228,7 +250,8 @@ def movie_page(movie_id):
         actors=actors,
         directors=directors,
         writers=writers, 
-        genres=genre_name
+        genres=genre_name,
+        is_favourite=is_favourite
     )
 
 @app.route('/search')
@@ -249,21 +272,6 @@ def search():
 @app.route('/movie/add/<int:movie_id>', methods=['POST'])
 @login_required
 def movieapi(movie_id):
-    user_id = session.get('user_id') # Adjust based on how you store user info
-    
-    # 1. Check if it's already in the database to avoid duplicates
-    exists = Favourites.query.filter_by(user_id=user_id, movie_id=movie_id).first()
-    
-    if not exists:
-        # 2. Add to database
-        new_favorite = Favourites(user_id=user_id, movie_id=movie_id)
-        db.session.add(new_favorite)
-        db.session.commit()
-        flash("Movie added to your favorites!")
-    else:
-        flash("Movie is already in your list.")
-
-    # 3. Redirect back to the same movie page
     return redirect(url_for('movie_page', movie_id=movie_id))
 
 @app.route('/editUser', methods=['GET', 'POST'])
@@ -318,24 +326,44 @@ def editPass():
 @app.route('/add_favourite/<int:movie_id>', methods=['POST'])
 @login_required
 def add_favourite(movie_id):
-    # Get the user object using the username stored in the session
     user = User.query.filter_by(username=session['user']).first()
+    url = "http://127.0.0.1:8000/api/favourites"
     
-    # Check if this movie is already in their favourites
-    exists = Favourites.query.filter_by(userID=user.id, movieID=movie_id).first()
+    data = {
+        "userID": user.id,
+        "movieID": movie_id
+    }
+
+    try:
+        # API CALL instead of db.session.add
+        response = requests.post(url, json=data)
+        if response.status_code == 201:
+            return redirect(url_for('movie_page', movie_id=movie_id))
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
     
-    if not exists:
-        # Add to database using the correct model field names (userID, movieID)
-        new_fav = Favourites(userID=user.id, movieID=movie_id)
-        db.session.add(new_fav)
-        db.session.commit()
-        flash("Movie added to your favourites!")
-    else:
-        flash("Movie is already in your favourites.")
+
+@app.route('/remove_favourite/<int:movie_id>', methods=['POST'])
+@login_required
+def remove_favourite(movie_id):
+    user = User.query.filter_by(username=session['user']).first()
+    url = "http://127.0.0.1:8000/api/favourites"
     
-    # Redirect back to the movie page (the 'movie_page' function handles the GET)
-    return redirect(url_for('movie_page', movie_id=movie_id))
-            
+    data = {
+        "userID": user.id,
+        "movieID": movie_id
+    }
+
+    try:
+        response = requests.delete(url, json=data)
+        if response.status_code == 200:
+            return redirect(url_for('movie_page', movie_id=movie_id))
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+    
+
 # change when other areas are done
 # api for searching movies, else return all movies
 class MovieAPI(Resource):
@@ -497,18 +525,36 @@ class LoginAPI(Resource):
             },
             "token": token
         }, 200
-backendApi.add_resource(LoginAPI, "/api/favourites")
+backendApi.add_resource(LoginAPI, "/api/login")
 
 # api for getting, posting and deleteing favourites
 class FavouriteAPI(Resource):
     def get(self):
-        favourites = Favourites.query.all()
-        return jsonify([{
-            "id": f.id,
-            "userID": f.userID,
-            "movieID": f.movieID
-        }for f in favourites])
-        
+
+        username_from_arg = request.args.get('username')
+        username_from_session = session.get('user')
+
+        target_name = username_from_arg or username_from_session
+
+        if target_name:
+            user = User.query.filter_by(username=target_name).first()
+            if user:
+                print(target_name)
+                favourites = Favourites.query.filter_by(userID=user.id).all()
+                return jsonify([{
+                    "id": f.id,
+                    "userID": f.userID,
+                    "movieID": f.movieID
+                } for f in favourites])
+                        
+        else:
+            favourites = Favourites.query.all()
+            return jsonify([{
+                "id": f.id,
+                "userID": f.userID,
+                "movieID": f.movieID
+            }for f in favourites])
+            
     
     def post(self):
         data = request.get_json()
@@ -557,6 +603,8 @@ class FavouriteAPI(Resource):
             movieID=data["movieID"]
         ).first()
 
+        print(favourite)
+
         if not favourite:
             return {"error": "Favourite not found"}, 404
 
@@ -564,20 +612,33 @@ class FavouriteAPI(Resource):
         db.session.delete(favourite)
         db.session.commit()
 
-        return {"message": f"User '{data['id']}' deleted successfully"}, 200
+        return {"message": f"User '{data['userID']}' deleted successfully"}, 200
 backendApi.add_resource(FavouriteAPI, "/api/favourites")
 
 # api for getting and posting reviews
 class ReviewAPI(Resource):
-    @require_login
+    
     def get(self):
-        reviews = Review.query.all()
-        return jsonify([{   
-            "id": r.id,
-            "userID": r.userID,
-            "movieID": r.movieID,
-            "content": r.content,
+
+        username = User.query.filter_by(username = session.get('user')).first()
+        
+        if username != None:
+            reviews = Review.query.filter_by(userID = username.id).all()
+            return jsonify([{
+                "id": r.id,
+                "userID": r.userID,
+                "movieID": r.movieID,
+                "content": r.content
             } for r in reviews])
+
+        else:
+            reviews = Review.query.all()
+            return jsonify([{   
+                "id": r.id,
+                "userID": r.userID,
+                "movieID": r.movieID,
+                "content": r.content,
+                } for r in reviews])
     
     def post(self):
         data = request.get_json()
