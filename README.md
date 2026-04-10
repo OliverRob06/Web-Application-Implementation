@@ -1,5 +1,3 @@
-
-```markdown
 # Movie Review & Recommendation System
 
 A full-featured web application that allows users to explore movies, write reviews, maintain favorites, and receive personalized movie recommendations based on their preferences. The system includes admin capabilities for content moderation.
@@ -268,4 +266,3 @@ For issues, questions, or contributions, please open an issue in the repository 
 ---
 
 **Note**: This application is for educational purposes. Ensure you comply with TMDB's API terms of service and implement proper security measures before deploying to production.
-```
