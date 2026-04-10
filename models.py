@@ -29,3 +29,10 @@ class Report(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     userID = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
     reviewID = db.Column(db.Integer, db.ForeignKey('review.id'), nullable = False)
+
+class APIkey(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    key = db.Column(db.String(64), unique=True, nullable=False)
+    role = db.Column(db.String(50), nullable=False)
+    request_count = db.Column(db.Integer, default=0)
+    rate_limit = db.Column(db.Integer, default=1000)

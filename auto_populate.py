@@ -1,6 +1,7 @@
+import secrets
 from app import app, db
-from models import User, Favourites, Review, Report
-from werkzeug.security import generate_password_hash, check_password_hash
+from models import User, Favourites, Review, Report, APIkey
+from werkzeug.security import generate_password_hash
 
 
 
@@ -13,7 +14,11 @@ jane_hashed_pw = generate_password_hash("securepass")
 admin_hashed_pw = generate_password_hash("adminPW")
 
 
-
+#api keys
+api_keys = [
+    {"role": "admin"},
+    {"role": "user" },
+]
 
 #list of users
 users = [
@@ -75,6 +80,19 @@ with app.app_context():
             reviewID = report_data["reviewID"]
         )
         db.session.add(new_report)
+    
+    
+    for entry in api_keys:
+        new_key = APIkey(
+            key=secrets.token_hex(32),
+            role=entry["role"],
+            rate_limit =1000,
+        )
+        db.session.add(new_key)
+        print("API KEY CREATED:", new_key.key, "ROLE:", entry["role"])
+    db.session.commit()
+    
+
     
     
         
