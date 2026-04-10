@@ -65,7 +65,7 @@ def login():
         }
         
         try:
-            session['user'] = user
+            session['user'] = username
             print(session.get('user'))
             
             response = requests.post(url, json=data)
@@ -541,26 +541,32 @@ backendApi.add_resource(LoginAPI, "/api/login")
 # api for getting, posting and deleteing favourites
 class FavouriteAPI(Resource):
     def get(self):
-        username = User.query.filter_by(username = session.get('user')).first()
 
-        if username != None:
-            favourites = Favourites.query.filter_by(userID = username.id).all()
-            return jsonify([{
-                "id": f.id,
-                "userID": f.userID,
-                "movieID": f.movieID
-            }for f in favourites])
-        
+        username_from_arg = request.args.get('username')
+        username_from_session = session.get('user')
+
+        target_name = username_from_arg or username_from_session
+
+        if target_name:
+            user = User.query.filter_by(username=target_name).first()
+            if user:
+                print(target_name)
+                favourites = Favourites.query.filter_by(userID=user.id).all()
+                return jsonify([{
+                    "id": f.id,
+                    "userID": f.userID,
+                    "movieID": f.movieID
+                } for f in favourites])
+                        
         else:
-            username = request.form.get('Username')
-            username = User.query.filter_by(username = username).all()
-            print(username)
             favourites = Favourites.query.all()
             return jsonify([{
                 "id": f.id,
                 "userID": f.userID,
                 "movieID": f.movieID
             }for f in favourites])
+            
+        return {"message": "User not identified"}, 401
         
     
     def post(self):
