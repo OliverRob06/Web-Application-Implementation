@@ -1,3 +1,6 @@
+{% from 'components/forms.html' import button %}
+
+
 {% macro movieCard(id="" ,src ="",MovieName ="") %}
 <a href="{{ url_for('movie_page', movie_id=id) }}">
     <div class="card movieCard">
@@ -22,7 +25,8 @@
 {% endmacro %}
 
 
-{% macro MovieCardScroll(movies) %}
+{% macro MovieCardScroll(movies, heading="") %}
+<h2 class="scrollHeading">{{heading}}</h2>
 <div class="container-fluid">
     <div class="d-flex scroll">
         {% for movie in movies %}
@@ -53,8 +57,7 @@
 
                 <div class="flex-grow-1">
                     <div class="d-flex align-items-baseline gap-3 mb-1">
-                        <h1 class="reviewTitle fw-bold mb-0">{{title}}</h1>
-                        <h4 class="fw-bold ms-3 mb-0">{{Aname}}</h4>
+                        <h4 class="fw-bold mb-1">{{Aname}}</h4>
                     </div>
 
                     <p class="lead">
@@ -64,13 +67,37 @@
 
                 <div class="d-flex w-25 align-items-center gap-3">
                     <h2 class="review mb-0">5.4</h2>
-                    <img class="ms-auto" src="../static/images/tickIcon.png" alt="Approve Review IMG" height="45"
-                        width="50">
-                    <!-- <img class="reviewIMG" src="../static/images/unhoveredDeleteIcon.png" alt="Delete Review IMG" height="50" width="40"> -->
-                    <img class="reviewIMG" src="{{ url_for('static', filename='images/unhoveredDeleteIcon.png') }}"
-                        alt="Delete Review IMG">
-
+                    {{button('report','submit','Report','filterButton big_button btn')}} 
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endmacro %}
+
+{% macro accountReview(name, title, Aname, description, review_text) %}
+<div class="container-fluid d-flex align-items-center justify-content-center py-3">
+    <div class="row w-100 justify-content-center">
+        <div class="list-container col-11 col-md-11 bg-grey rounded-4">
+            <div class="d-flex justify-content-between align-items-center p-3">
+
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-baseline gap-3 mb-1">
+                        <h1 class="reviewTitle fw-bold mb-0">{{title}}</h1>
+                        {% if Aname %}
+                        <h4 class="fw-bold ms-3 mb-0">{{Aname}}</h4>
+                        {% endif %}
+                    </div>
+
+                    <p class="lead mb-0">
+                        <span class="fw-bold text-secondary">{{description}}</span> {{review_text}}
+                    </p>
+                </div>
+
+                <div class="d-flex align-items-center">
+                    {# Buttons removed to keep the layout clean for the account page #}
+                </div>
+
             </div>
         </div>
     </div>

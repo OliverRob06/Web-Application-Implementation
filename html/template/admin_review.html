@@ -1,5 +1,6 @@
 {% extends 'layout/adminBase.html' %}
-{% from 'components/forms.html' import input, button, review, movie %}
+{% from 'components/forms.html' import input, button %}
+{% from 'components/admin.html' import review %}
 
 {% block content %}
 <div class="row align-items-center g-0 mb-4">
@@ -17,6 +18,8 @@
 
 
 {% for r in reviews %}
-{{ review(r.title, r.Aname, r.description, r.review) }}
+{{ review('admin', r.movie_title, r.username, "Reports: " ~ r.report_count, r.content, r.review_id) }}
 {% endfor %}
+
+{# This was the missing or misplaced tag #}
 {% endblock %}

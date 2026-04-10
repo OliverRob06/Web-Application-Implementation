@@ -1,34 +1,37 @@
 {% extends 'layout/accountTemplate.html' %}
-{% from 'components/forms.html' import input %}
-{% from 'components/forms.html' import button %}
-{% from 'components/user.html' import movieCard %}
-{% from 'components/forms.html' import navButton %}
-{% from 'components/user.html' import MovieCardScroll %}
+{% from 'components/forms.html' import input,button ,navButton %}
+{% from 'components/user.html' import MovieCardScroll,accountReview,movieCard %}
 
 
-
-{% block heading %} 
-    Welcome, {{ session['user'] }}!
+{% block heading %}
+Welcome, {{ session['user'] }}!
 {% endblock %}
 
-{% block heading2 %} 
-    {{navButton('Edit Username','editUser','big_button btn')}}
+{% block heading2 %}
+{{navButton('Edit Username','editUser','big_button btn')}}
 {% endblock %}
 
-{% block heading3 %} 
-    {{navButton('Edit Password','editPass','big_button btn')}}
+{% block heading3 %}
+{{navButton('Edit Password','editPass','big_button btn')}}
 {% endblock %}
 
-{% block heading4 %} 
-    <form action="{{ url_for('logout') }}" method="POST">
-        {{button('logout','submit','Log Out','big_button btn')}} 
-    </form>
+{% block heading4 %}
+<form action="{{ url_for('logout') }}" method="POST">
+    {{button('logout','submit','Log Out','big_button btn')}}
+</form>
 
 {% endblock %}
 
-{% block content %} 
-    <div class="ps-4 pe-2">
-        <h2 class="scrollHeading">Your Favourites </h2>
-    </div>
-    {{ MovieCardScroll(movies) }}
+{% block content %}
+
+{{ MovieCardScroll(movies,"Your Favourites") }}
+
+<div class="container mt-5">
+    <h2 class="scrollHeading">My Reviews</h2>
+    {% for r in reviews %}
+    {{ accountReview('user', r.movie_title, '', 'Review:', r.content) }}
+    {% else %}
+    <p class="text-muted ms-2">You haven't written any reviews yet.</p>
+    {% endfor %}
+</div>
 {% endblock %}
