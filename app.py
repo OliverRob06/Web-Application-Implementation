@@ -568,8 +568,6 @@ class FavouriteAPI(Resource):
                 "movieID": f.movieID
             }for f in favourites])
             
-        return {"message": "User not identified"}, 401
-        
     
     def post(self):
         data = request.get_json()
