@@ -614,6 +614,8 @@ class FavouriteAPI(Resource):
             movieID=data["movieID"]
         ).first()
 
+        print(favourite)
+        
         if not favourite:
             return {"error": "Favourite not found"}, 404
 
