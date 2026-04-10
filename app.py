@@ -65,6 +65,9 @@ def login():
         }
         
         try:
+            session['user'] = user
+            print(session.get('user'))
+            
             response = requests.post(url, json=data)
 
             if response.status_code == 200:
@@ -619,15 +622,28 @@ backendApi.add_resource(FavouriteAPI, "/api/favourites")
 
 # api for getting and posting reviews
 class ReviewAPI(Resource):
-    @require_login
+    
     def get(self):
-        reviews = Review.query.all()
-        return jsonify([{   
-            "id": r.id,
-            "userID": r.userID,
-            "movieID": r.movieID,
-            "content": r.content,
+
+        username = User.query.filter_by(username = session.get('user')).first()
+        
+        if username != None:
+            reviews = Review.query.filter_by(userID = username.id).all()
+            return jsonify([{
+                "id": r.id,
+                "userID": r.userID,
+                "movieID": r.movieID,
+                "content": r.content
             } for r in reviews])
+
+        else:
+            reviews = Review.query.all()
+            return jsonify([{   
+                "id": r.id,
+                "userID": r.userID,
+                "movieID": r.movieID,
+                "content": r.content,
+                } for r in reviews])
     
     def post(self):
         data = request.get_json()
