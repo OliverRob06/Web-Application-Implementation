@@ -2,7 +2,7 @@ from flask import Flask, flash, render_template, request, redirect, url_for, ses
 from flask_restful import Api, Resource
 from auth import login_required, admin_required
 from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recommendations ,get_top_rated_movies
-from models import db, User, Favourites, Review, Rating, Report
+from models import db, User, Favourites, Review, Report
 import random
 import requests
 import os
