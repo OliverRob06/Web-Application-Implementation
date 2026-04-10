@@ -126,6 +126,25 @@ nav {
 	padding: 25px 0px 25px 0px;
 }
 
+.adminNav {
+	font-size: 20px;
+	font-weight: bold;
+	text-decoration: none;
+	color: black;
+	margin: 0px 0px 0px 0px;   
+	padding: 25px 50px 25px 50px;
+    transition: background-color 0.2s ease;
+	top: 0;
+	width: 100%;
+	position: fixed;
+	background-color: #BBE19F;
+    z-index: 100;  
+	height: 75px;
+	/* box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25); */
+	width: 200px !important;
+	border: 0px;
+}
+
 .navButton{
     font-size: 20px;
 	font-weight: bold;
