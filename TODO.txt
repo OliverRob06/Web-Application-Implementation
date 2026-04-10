@@ -17,7 +17,9 @@ Eddie:
     incorect login page (with message)
     when lggin as username that njust chnaged
 
-    add function to add favourite
+    add function to delete favourites
+
+    review adding
 
 
 add reveiws to account page - done just html problems
