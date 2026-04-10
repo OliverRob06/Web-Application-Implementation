@@ -78,7 +78,7 @@ def login():
                 session['role'] = 'admin' if is_admin else 'user'
 
                 if is_admin:
-                    return redirect(url_for('admin_search'))
+                    return redirect(url_for('reviews'))
                 else:
                     return redirect(url_for('home'))
             
@@ -90,7 +90,7 @@ def login():
 
     return render_template('login.html')
 
-@app.route('/logout', methods=['POST'])
+@app.route('/logout', methods=['GET', 'POST'])
 def logout():
     session.clear()
     return redirect(url_for('index'))
@@ -851,12 +851,6 @@ class ReportAPI(Resource):
         return {"error": "No action specified"}, 400
 backendApi.add_resource(ReportAPI, "/api/reports")
 
-
-@app.route('/api/admin/test')
-@admin_required
-def admin_secret():
-    return "If you see this, you are an Admin!"
-
 @app.route('/reviews')
 @login_required
 @admin_required
@@ -901,12 +895,6 @@ def admin_delete(review_id):
     else:
         flash("Error: Could not delete review.")
     return redirect(url_for('reviews'))
-
-@app.route('/admin_search')
-def admin_search():
-    # Render the admin search page
-    return render_template('admin_search.html')
-
 
 print("DB path:", os.path.abspath(db_path))
 

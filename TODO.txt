@@ -21,10 +21,6 @@ VERY VERY BAD
 error codes matching 
 
 Oliver:
-    API Authentication
-   
-  
-
 admin pages
 
 Eddie:
