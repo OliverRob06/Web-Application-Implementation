@@ -19,7 +19,7 @@ body {
 .profile{
 	width: 59px;
 	height: 59px;
-	margin: 8px 8px 8px 8px;
+	margin: 8px;
 }
 
 .infoRow{
@@ -288,6 +288,7 @@ h2{
 .row{
 	padding-left: 0px;
 	padding-right: 0px;
+	width: 100%;
 
 }
 
@@ -314,5 +315,6 @@ a{
 .auto-expand {
     /* overflow: hidden; */
     resize: none;  
-    min-height: 120px;  
+    min-height: 120px;
+	padding: 10px;
 }
