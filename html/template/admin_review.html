@@ -12,6 +12,11 @@
     </div>
 </div>
 
+
+<!-- {{review('reviews','Bleep Blorp', 'the bleebers' 'BLabee bughh be bee blee Labee bughh be bee bleeLabee bughh be bee bleeLabee bughh be bee blee', '9.8')}} -->
+<!-- {{review('reviews','BUngo','Jeff','BLabee bughh be bee blee Labee bughh be bee bleeLabee bughh be bee bleeLabee bughh be bee blee', '4.8')}} -->
+
+
 {% for r in reviews %}
 {{ review('admin', r.movie_title, r.username, "Reports: " ~ r.report_count, r.content, r.review_id) }}
 {% endfor %}
