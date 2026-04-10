@@ -63,13 +63,13 @@ def login():
         password = request.form.get('Password')
 
         print(f"Login attempt for user: {user}")
+        data = {
+            "username": user,
+            "password": password
+        }
 
         try:
-            global data
-            data = {
-                "username": user,
-                "password": password
-            }
+            session['user'] = user
             response = requests.post(url, json=data)
 
             if response.status_code == 200:
@@ -115,9 +115,8 @@ def signup():
     return render_template('signup.html')
 
 @app.route('/home')
-
 def home():
-    user = User.query.filter_by(username=data['username']).first()
+    user = User.query.filter_by(username=session['user']).first()
     favourites = Favourites.query.filter_by(userID=user.id).all()
     
     favs = [f.movieID for f in favourites]
@@ -150,7 +149,7 @@ def home():
         return render_template('home.html', movies=formatted_movies)
 
 @app.route('/account')
-@login_required
+
 def account():
     user = User.query.filter_by(username=data["username"]).first()
     user_id = user.id
