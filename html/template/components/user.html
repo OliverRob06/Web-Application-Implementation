@@ -30,7 +30,7 @@
 <div class="container-fluid">
     <div class="d-flex scroll">
         {% for movie in movies %}
-        {{ movieCard(movie.id , "https://image.tmdb.org/t/p/original" ~ movie.poster_path, movie.title) }}
+        {{ movieCard(movie.id , "https://image.tmdb.org/t/p/w500" ~ movie.poster_path, movie.title) }}
         {% endfor %}
     </div>
 </div>
@@ -67,7 +67,7 @@
 
                 <div class="d-flex w-25 align-items-center gap-3">
                     <h2 class="review mb-0">5.4</h2>
-                    {{button('report','submit','Report','filterButton big_button btn')}} 
+                    {{button('report','submit','Report','filterButton big_button btn')}}
                 </div>
             </div>
         </div>
