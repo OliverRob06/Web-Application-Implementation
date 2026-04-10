@@ -5,8 +5,15 @@ from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recom
 from models import db, User, Favourites, Review, Rating, Report
 import random
 import os
+from werkzeug.security import generate_password_hash, check_password_hash
+from backend_auth import require_login, require_admin
+import uuid
+from test import tokens
+from sqlalchemy import func
 
 app = Flask(__name__, template_folder = "html/template", static_folder = "static")
+
+
 
 #store database inside the project directory
 db_folder = os.path.join(os.getcwd(), "database")
@@ -14,6 +21,8 @@ db_path = os.path.join(db_folder, "database.db")
 
 #ensure the database directory exists
 os.makedirs(db_folder, exist_ok = True)
+
+
 
 #configuring SQL database
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
@@ -47,15 +56,21 @@ def login():
     #admin login 
     if request.method == 'POST':
         user = request.form.get('Username')
-        pw = request.form.get('Password')
+        password = request.form.get('Password')
 
         print(f"Login attempt for user: {user}")
 
-        # currently to login as admin 
-        # username = admin 
-        # password = adminke
-        
+        #verify user        
         db_user = User.query.filter_by(username = user).first()
+        if not db_user:
+            return{"Error":"User not found"}, 404
+        
+        #verify password
+        if not check_password_hash(db_user.password, password):
+            print("password entered", password)
+            print("password in db",db_user.password)
+            return {"error":"invalid password"}, 401
+            
         
         if db_user.admin:
             session['role'] = 'admin'
@@ -88,9 +103,11 @@ def signup():
         if existing_user:
             return 'Username already exists', 400
         
-        
+        #hash password
+        hashed_password = generate_password_hash(pw)
+
         #Add new user
-        new_user = User(username = user, password = pw)
+        new_user = User(username = user,  password = hashed_password)
         db.session.add(new_user)
         db.session.commit()
 
@@ -338,6 +355,7 @@ class MovieAPI(Resource):
 
 #api for getting, creating and deleting users
 class UserAPI(Resource):
+    @require_login
 
     #get method retrive all users from database
     def get(self):
@@ -376,10 +394,13 @@ class UserAPI(Resource):
             return 'Username already exists', 400
 
 
+        #hash password
+        hashed_password = generate_password_hash(data["password"])
+        print (hashed_password)
         new_user = User(
             username = data["username"],
-            password = data["password"],
-            admin = False
+            password = hashed_password,
+            admin = False,
         )
 
 
@@ -442,8 +463,44 @@ class UserAPI(Resource):
         return {"message": f"User '{data['username']}' deleted successfully"}, 200
 backendApi.add_resource(UserAPI, "/api/users")
 
+class LoginAPI(Resource):
+    def post(self):
+        data = request.get_json()
+        if not data or not data.get("username") or not data.get("password"):
+            return{"error": "username and password required"},400
+        
+        #verify user
+        db_user = User.query.filter_by(username = data["username"]).first()
+        if not db_user:
+            return{"Error":"User not found"}, 404
+        
+        #verify password
+        if not db_user or not check_password_hash(db_user.password, data["password"]):
+            return {"error":"invalid details"}, 401
+        
+        #generate token
+        token = str(uuid.uuid4())
+
+        #store token to user
+        tokens[token] ={
+            "user_id": db_user.id,
+            "role": "admin" if db_user.admin else "user"
+        }
+
+        return {
+            "message": "login successful",
+            "user": {
+                "id": db_user.id,
+                "username": db_user.username,
+                "admin": db_user.admin
+            },
+            "token": token
+        }, 200
+backendApi.add_resource(LoginAPI, "/api/favourites")
+
 # api for getting, posting and deleteing favourites
 class FavouriteAPI(Resource):
+    @require_login
     def get(self):
         favourites = Favourites.query.all()
         return jsonify([{
@@ -508,7 +565,7 @@ backendApi.add_resource(FavouriteAPI, "/api/favourites")
 
 # api for getting and posting reviews
 class ReviewAPI(Resource):
-    #@login_required
+    @require_login
     def get(self):
         reviews = Review.query.all()
         return jsonify([{   
@@ -611,6 +668,7 @@ backendApi.add_resource(ReviewAPI, "/api/reviews")
         
 # api for rating movies
 class RatingAPI(Resource):
+    @require_login
     def get(self):
         ratings = Rating.query.all()
         return jsonify([{
@@ -684,7 +742,8 @@ backendApi.add_resource(RatingAPI, "/api/ratings")
 
 # change when other areas are done
 # api for admins reviewing reported reviews
-class AdminReportAPI(Resource):
+class ReportAPI(Resource):  
+    @require_login
     def get(self):
         reports = Report.query.all()
         return jsonify([{
@@ -748,7 +807,33 @@ class AdminReportAPI(Resource):
         return {
             "message": f"Deleted {len(reports)} report(s) for review {data['reviewID']}"
         }, 200
-backendApi.add_resource(AdminReportAPI, "/api/reports")
+backendApi.add_resource(ReportAPI, "/api/reports")
+
+class ReviewsByReportCountAPI(Resource):
+    def get(self):
+        results = (
+            db.session.query(
+                Review,
+                func.count(Report.id).label("ReportCount")
+            )
+            .outerjoin(Report, Review.id == Report.reviewID)
+            .group_by(Review.id)
+            .order_by(func.count(Report.id).desc())
+            .all()
+        )
+
+        return jsonify([
+            {
+                "id": review.id,
+                "userid": review.userID,
+                "movieid": review.movieID,
+                "content": review.content,
+                "ReportCount": report_count
+            }
+            for review, report_count in results
+        ])
+backendApi.add_resource(ReviewsByReportCountAPI, "/api/sortedByReports")        
+   
 
 @app.route('/api/admin/test')
 @admin_required

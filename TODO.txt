@@ -1,14 +1,28 @@
 
 
+NEED TO REPLACE CURRENT METHODS FOR DATABASE CRUD OPERATIONS: 
+   (@app.route)
+    def login():
+TO RUN THEM THROUGH THE CORRESPONDING APIS
+    LoginAPI
+
+CURRENTLY DOES NOT USE THE APIS
+
+
+VERY VERY BAD
+
+
+
+
+
+
+
+
 error codes matching 
 
 Oliver:
-    link crud statements to the website to popualte databasesa
-        
-        
-    query for finding all reports for x review and sorting them in order of most reported
     API Authentication
-    Add passwording hashing
+   
   
 
 admin pages
