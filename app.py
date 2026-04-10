@@ -178,6 +178,7 @@ def account():
                         "title": movie_data.get("title"),
                         "poster_path": f"https://image.tmdb.org/t/p/w500{movie_data.get('poster_path')}" if movie_data.get('poster_path') else None
                     })
+        print('favourites received')
     except Exception as e:
         print(f"Fav API Error: {e}")
 
@@ -190,8 +191,9 @@ def account():
                 your_reviews.append({
                     "rating": r.get("rating"),
                     "content": r.get("content"),
-                    "movie_name": fetch_movie(r.get("movie_id")).get('title')
+                    "movie_name": fetch_movie(r.get('movieID')).get('title')
                 })
+        print(your_reviews)
     except Exception as e:
         print(f"Review API Error: {e}")
 
@@ -613,16 +615,20 @@ class ReviewAPI(Resource):
         username_from_session = session.get('user')
 
         target_name = username_from_arg or username_from_session
+
+        print(target_name)
         
         if target_name:
-            reviews = Review.query.filter_by(userID = target_name.id).all()
-            return jsonify([{
-                "id": r.id,
-                "userID": r.userID,
-                "movieID": r.movieID,
-                "content": r.content,
-                "rating": r.rating,
-            } for r in reviews])
+            user = User.query.filter_by(username=target_name).first()
+            if user:
+                reviews = Review.query.filter_by(userID = user.id).all()
+                return jsonify([{
+                    "id": r.id,
+                    "userID": r.userID,
+                    "movieID": r.movieID,
+                    "content": r.content,
+                    "rating": r.rating,
+                } for r in reviews])
 
         else:
             reviews = Review.query.all()
