@@ -16,7 +16,7 @@
 
                 {# Check if review_id exists to show the action buttons #}
                 {% if review_id %}
-                <div class="d-flex gap-2 ms-auto">
+                
                     <form action="{{ url_for('admin_dismiss', review_id=review_id) }}" method="POST" class="m-0">
                         <button type="submit" class="btn p-0 bg-transparent border-0">
                             <img src="{{ url_for('static', filename='images/tickIcon.png') }}" alt="Approve Review IMG"
@@ -31,7 +31,7 @@
                                 alt="Delete Review IMG" height="50" width="40">
                         </button>
                     </form>
-                </div>
+                
                 {% endif %}
 
                 <p class="lead float-start">

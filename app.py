@@ -90,7 +90,7 @@ def login():
                 session['role'] = 'admin' if is_admin else 'user'
 
                 if is_admin:
-                    return redirect(url_for('admin_search'))
+                    return redirect(url_for('reviews'))
                 else:
                     return redirect(url_for('home'))
             
@@ -102,8 +102,7 @@ def login():
 
     return render_template('login.html')
 
-@app.route('/logout', methods=['POST'])
-
+@app.route('/logout', methods=['GET', 'POST'])
 def logout():
     session.clear()
     return redirect(url_for('index'))
@@ -257,6 +256,7 @@ def movie_page(movie_id):
         if rev_resp.status_code == 200:
             for r in rev_resp.json():
                 reviews.append({
+                    "id": r.get("id"),
                     "rating": r.get("rating"),
                     "content": r.get("content"),
                     "username": User.query.get(r.get("userID")).username
@@ -428,7 +428,60 @@ def remove_favourite(movie_id):
 @app.route('/submit_review/<int:movie_id>', methods=['POST'])
 
 def submit_review(movie_id):
-    pass
+    user = User.query.filter_by(username=session['user']).first()
+
+    url = "http://127.0.0.1:8000/api/reviews"
+
+    data = {
+        "userID": user.id,
+        "movieID": movie_id,
+        'content': request.form.get("content"),
+        'rating': int(request.form.get("rating"))
+    }
+
+    try:
+        response = requests.post(url, json=data)
+
+        if response.status_code == 201:
+            return redirect(url_for('movie_page', movie_id=movie_id))
+
+        return jsonify({
+            "success": False,
+            "error": response.json()
+        }), response.status_code
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/report_review/<int:review_id>', methods=['POST'])
+def report_review(review_id):
+    user = User.query.filter_by(username=session['user']).first()
+    movie_id = request.form.get('movie_id')
+    
+    url = "http://127.0.0.1:8000/api/reports"
+
+    data = {
+        "reviewID": review_id,
+        "userID": user.id
+    }
+
+    try:
+        response = requests.post(url, json=data)
+
+        if response.status_code == 201:
+            return redirect(url_for('movie_page', movie_id=movie_id))
+        
+        elif response.status_code == 409:
+            return redirect(url_for('movie_page', movie_id=movie_id))
+
+        return jsonify({
+            "success": False,
+            "error": response.json()
+        }), response.status_code
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 # change when other areas are done
 # api for searching movies, else return all movies
@@ -637,17 +690,12 @@ class FavouriteAPI(Resource):
 
         existing_favourite = Favourites.query.filter_by(userID=data["userID"], movieID=data["movieID"]).first()
         if existing_favourite:
-            print('test1.3')
             return {"error": "Favourite already exists"}, 402
-        
-        print('test2')
-
 
         new_favourite = Favourites(
             userID = data["userID"],
             movieID = data["movieID"],
         )
-
 
         db.session.add(new_favourite)
         db.session.commit()
@@ -663,12 +711,9 @@ class FavouriteAPI(Resource):
     @require_api_key()
     def delete(self):
         data = request.get_json()
-
         
         if not data.get("userID") or not data.get("movieID"):
             return{"message": "user and move ID required to delete the favourite"}, 404
-
-        #find favourite
 
         favourite = Favourites.query.filter_by(
             userID=data["userID"],
@@ -679,7 +724,6 @@ class FavouriteAPI(Resource):
 
         if not favourite:
             return {"error": "Favourite not found"}, 404
-
 
         db.session.delete(favourite)
         db.session.commit()
@@ -719,6 +763,7 @@ class ReviewAPI(Resource):
             {
                 "id": r.id,
                 "userID": r.userID,
+                "username": User.query.get(r.userID).username,
                 "movieID": r.movieID,
                 "content": r.content,
                 "rating": r.rating
@@ -730,27 +775,31 @@ class ReviewAPI(Resource):
     def post(self):
         data = request.get_json()
 
-        if not data.get("userID") or not data.get("movieID"):
-            return{"message": "Requires a userID and movieID to post a review"},400
+        if not data.get("userID") or not data.get("movieID") or not data.get("content") or data.get("rating") is None:
+            return {"message": "Requires userID, movieID, content, and rating"}, 400
 
-        existing_review = Review.query.filter_by(userID=data["userID"], movieID=data["movieID"]).first()
+        existing_review = Review.query.filter_by(
+            userID=data["userID"],
+            movieID=data["movieID"]
+        ).first()
+
         if existing_review:
-            return 'Username already exists', 400
-
+            return {"message": "Review already exists for this user and movie"}, 400
 
         new_review = Review(
-            userID = data["userID"],
-            movieID = data["movieID"],
-            content = data["content"]
+            userID=data["userID"],
+            movieID=data["movieID"],
+            content=data["content"],
+            rating=data["rating"]
         )
-
 
         db.session.add(new_review)
         db.session.commit()
+
         return {
-            "message": "New review successfully added",
+            "message": "Review created successfully",
             "review": {
-                "id": new_review.id,
+                'id':new_review.id,
                 "userID": new_review.userID,
                 "movieID": new_review.movieID,
                 "content": new_review.content
@@ -816,6 +865,47 @@ class ReportAPI(Resource):
             for review, report_count in results
         ]
 
+    def post(self):
+        data = request.get_json()
+
+        if not data.get("reviewID"):
+            return {"message": "reviewID is required"}, 400
+        
+        if not data.get("userID"):
+            return {"message": "userID is required"}, 400
+
+        review_id = data["reviewID"]
+        user_id = data["userID"]
+
+        # Check if this user has already reported this review
+        existing_report = Report.query.filter_by(
+            reviewID=review_id,
+            userID=user_id
+        ).first()
+        
+        if existing_report:
+            return {
+                "message": "You have already reported this review",
+                "already_reported": True
+            }, 409  
+
+        new_report = Report(
+            reviewID=review_id,
+            userID=user_id
+        )
+
+        db.session.add(new_report)
+        db.session.commit()
+
+        return {
+            "message": "Report added successfully",
+            "report": {
+                "id": new_report.id,
+                "reviewID": new_report.reviewID,
+                "userID": new_report.userID
+            }
+        }, 201
+
     @require_api_key(role = "admin")
     def delete(self):
         # Handle Dismiss and Delete here using query params or JSON body
@@ -842,12 +932,6 @@ class ReportAPI(Resource):
                 
         return {"error": "No action specified"}, 400
 backendApi.add_resource(ReportAPI, "/api/reports")
-
-
-@app.route('/api/admin/test')
-
-def admin_secret():
-    return "If you see this, you are an Admin!"
 
 @app.route('/reviews')
 
@@ -893,14 +977,6 @@ def admin_delete(review_id):
     else:
         flash("Error: Could not delete review.")
     return redirect(url_for('reviews'))
-
-
-@app.route('/admin_search')
-
-def admin_search():
-    # Render the admin search page
-    return render_template('admin_search.html')
-
 
 print("DB path:", os.path.abspath(db_path))
 

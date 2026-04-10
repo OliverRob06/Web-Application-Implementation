@@ -5,6 +5,12 @@
 </div>
 {% endmacro %}
 
+{% macro reviewText(name , type ="text", placeholder="" , class ="") %}
+<div>
+    <textarea  name="{{name}}" type="{{type}}" placeholder="{{placeholder}}" class="auto-expand w-100 {{class}} " rows="3"></textarea >
+</div>
+{% endmacro %}
+
 {% macro navButton(text ="", dest="", class ="") %}
 <div>
     <a href="{{ url_for(dest) }}" class="text-center w-100 {{class}}">

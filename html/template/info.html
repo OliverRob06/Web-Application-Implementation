@@ -1,9 +1,6 @@
 {% extends 'layout/movietemplate.html' %}
-{% from 'components/forms.html' import button %}
-{% from 'components/user.html' import actorCardScroll %}
-{% from 'components/user.html' import infoReview %}
-{% from 'components/forms.html' import input %}
-
+{% from 'components/forms.html' import button, reviewText , input %}
+{% from 'components/user.html' import actorCardScroll, infoReview %}
 
 {% block heading %}
 {{ movie.title }}
@@ -74,29 +71,27 @@
         </div>
 
     </div>
-
-    <div class="container-fluid px-0">
-        <div class="row align-items-center">
-            <div class="col-3 ps-0 pe-2 heading">
-                <h1>
-                    Reviews
-                </h1>
-            </div>
-            <div class="col-6 ps-2 pe-2">
-                {{input('Review','text','Review text here','rateInput')}}
-            </div>
-            <div class="col-1">
-                {{input('rating','number','Rate','rateInput')}}
-            </div>
-            <div class="col-2 ps-2 pe-5">
-                {{button('rate','submit','Submit','big_button btn')}}
+    <form action="{{ url_for('submit_review', movie_id=movie.id) }}" method="POST">
+        <div class="container-fluid px-0">
+            <div class="row align-items-center">
+                <div class="col-3 ps-0 pe-2 heading">
+                    <h1>Reviews</h1>
+                </div>
+                <div class="col-6 ps-2 pe-2">
+                    {{ reviewText('content','Review text here','rateInput') }}
+                </div>
+                <div class="col-1">
+                    {{ input('rating','number','Rate','rateInput') }}
+                </div>
+                <div class="col-2 ps-2 pe-5">
+                    {{ button('submit','submit','Submit','big_button btn') }}
+                </div>
             </div>
         </div>
-    </div>
-
+    </form>
 
     {% for r in reviews %}
-    {{ infoReview( r.username, r.content, r.rating ) }}
+    {{ infoReview(r.id, r.username, r.content, r.rating, movie.id) }}
     {% endfor %}
 
 
