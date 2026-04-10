@@ -2,7 +2,7 @@ from flask import Flask, flash, render_template, request, redirect, url_for, ses
 from flask_restful import Api, Resource
 from auth import login_required, admin_required
 from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recommendations ,get_top_rated_movies
-from models import db, User, Favourites, Review, Rating, Report
+from models import db, User, Favourites, Review, Report
 import random
 import requests
 import os
@@ -184,19 +184,9 @@ def account():
     # API CALL for Reviews
     formatted_reviews = []
     try:
-        rev_resp = requests.get("http://127.0.0.1:8000/api/reviews") # Note: Your ReviewAPI.get returns ALL reviews currently
-        if rev_resp.status_code == 200:
-            all_reviews = rev_resp.json()
-            # Filter for this specific user
-            user_reviews = [r for r in all_reviews if r['userID'] == user.id]
-            for rev in user_reviews:
-                movie_data = fetch_movie(rev['movieID'])
-                formatted_reviews.append({
-                    "review_id": rev['id'],
-                    "movie_title": movie_data.get('title', 'Unknown'),
-                    "content": rev['content'],
-                    "movie_id": rev['movieID']
-                })
+        rev_resp = requests.get(f"http://127.0.0.1:8000/api/reviews?username={user.username}") # Note: Your ReviewAPI.get returns ALL reviews currently
+        
+            
     except Exception as e:
         print(f"Review API Error: {e}")
 
@@ -269,11 +259,6 @@ def search():
 
     return render_template('search.html', movies=results)
 
-@app.route('/movie/add/<int:movie_id>', methods=['POST'])
-@login_required
-def movieapi(movie_id):
-    return redirect(url_for('movie_page', movie_id=movie_id))
-
 @app.route('/editUser', methods=['GET', 'POST'])
 @login_required
 def editUser():
@@ -343,7 +328,6 @@ def add_favourite(movie_id):
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
     
-
 @app.route('/remove_favourite/<int:movie_id>', methods=['POST'])
 @login_required
 def remove_favourite(movie_id):
@@ -362,7 +346,6 @@ def remove_favourite(movie_id):
         
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-    
 
 # change when other areas are done
 # api for searching movies, else return all movies
@@ -487,7 +470,7 @@ class UserAPI(Resource):
             return{"error": "User not Found"}, 404
 
         db.session.delete(user)
-        db.session.complete()
+        db.session.commit()
 
         return {"message": f"User '{data['username']}' deleted successfully"}, 200
 backendApi.add_resource(UserAPI, "/api/users")
@@ -620,10 +603,14 @@ class ReviewAPI(Resource):
     
     def get(self):
 
-        username = User.query.filter_by(username = session.get('user')).first()
+
+        username_from_arg = request.args.get('username')
+        username_from_session = session.get('user')
+
+        target_name = username_from_arg or username_from_session
         
-        if username != None:
-            reviews = Review.query.filter_by(userID = username.id).all()
+        if target_name:
+            reviews = Review.query.filter_by(userID = target_name.id).all()
             return jsonify([{
                 "id": r.id,
                 "userID": r.userID,
@@ -731,80 +718,6 @@ class ReviewAPI(Resource):
         }, 200
 backendApi.add_resource(ReviewAPI, "/api/reviews")
         
-# api for rating movies
-class RatingAPI(Resource):
-    @require_login
-    def get(self):
-        ratings = Rating.query.all()
-        return jsonify([{
-        "id": rat.id,
-        "userID": rat.userID,
-        "movieID": rat.movieID,
-        "score": rat.score,
-    } for rat in ratings])
-    
-    def post(self):
-        data = request.get_json()
-
-        if not data.get("userID") or not data.get("movieID"):
-            return{"message": "Requires a userID and movieID to post a rating"},400
-
-        existing_rating = Rating.query.filter_by(userID=data["userID"], movieID=data["movieID"]).first()
-        if existing_rating:
-            return {"error": "Rating already exists"}, 400
-
-
-        new_rating = Rating(
-            userID = data["userID"],
-            movieID = data["movieID"],
-            score = data["score"],
-        )
-
-
-        db.session.add(new_rating)
-        db.session.commit()
-        return {
-            "message": "New rating successfully added",
-            "rating": {
-                "id": new_rating.id,
-                "userID": new_rating.userID,
-                "movieID": new_rating.movieID,
-                "score": new_rating.score
-            }
-        }, 201
-    
-    def put(self):
-        data = request.get_json()
-
-        if not data or not data.get("userID") or not data.get("movieID") or data.get("newRating") is None:
-            return {"message": "userID and movieID, newRating are required to update a rating"}, 400
-
-        # find zee rating
-        rating = Rating.query.filter_by(
-            userID=data["userID"],
-            movieID=data["movieID"]
-
-        ).first()
-
-        if not rating:
-            return {"error": "Review not found"}, 404
-
-        # Update content if provided
-        rating.score = data["newRating"]
-
-        db.session.commit()
-
-        return {
-            "message": "New rating successfully added",
-            "rating": {
-                "id": rating.id,
-                "userID": rating.userID,
-                "movieID": rating.movieID,
-                "score": rating.score
-            }
-        }, 201  
-backendApi.add_resource(RatingAPI, "/api/ratings")
-
 # change when other areas are done
 # api for admins reviewing reported reviews
 class ReportAPI(Resource):  

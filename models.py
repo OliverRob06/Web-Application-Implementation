@@ -20,16 +20,10 @@ class Review(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     content = db.Column(db.String(10000), nullable = False)
     movieID = db.Column(db.Integer, nullable = False)
+    rating = db.Column(db.Integer, nullable = False)
     #foreign key Links To Users
     userID = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
-
-
-class Rating(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
-    score = db.Column(db.Integer, primary_key = False)
-    movieID = db.Column(db.Integer, nullable = False)
-    #foreign keys to link to user and movie
-    userID = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
+    
 
 class Report(db.Model):
     id = db.Column(db.Integer, primary_key = True)

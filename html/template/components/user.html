@@ -30,7 +30,7 @@
 <div class="container-fluid">
     <div class="d-flex scroll">
         {% for movie in movies %}
-        {{ movieCard(movie.id , "https://image.tmdb.org/t/p/original" ~ movie.poster_path, movie.title) }}
+        {{ movieCard(movie.id , "https://image.tmdb.org/t/p/w500" ~ movie.poster_path, movie.title) }}
         {% endfor %}
     </div>
 </div>
@@ -55,7 +55,7 @@
         <div class="list-container col-11 col-md-11 bg-grey rounded-4">
             <div class="d-flex justify-content-between align-items-center">
 
-                <div class="flex-grow-1">
+                <div class="flex-grow-1 w-75">
                     <div class="d-flex align-items-baseline gap-3 mb-1">
                         <h4 class="fw-bold mb-1">{{Aname}}</h4>
                     </div>
@@ -65,9 +65,9 @@
                     </p>
                 </div>
 
-                <div class="d-flex w-25 align-items-center gap-3">
+                <div class="d-flex w-25 align-items-center gap-3 ps-5">
                     <h2 class="review mb-0">5.4</h2>
-                    {{button('report','submit','Report','filterButton big_button btn')}} 
+                    {{button('report','submit','Report','filterButton big_button btn')}}
                 </div>
             </div>
         </div>
@@ -75,27 +75,25 @@
 </div>
 {% endmacro %}
 
-{% macro accountReview(name, title, Aname, description, review_text) %}
-<div class="container-fluid d-flex align-items-center justify-content-center py-3">
+{% macro accountReview(name, title, description, rating) %}
+
+<div class="btn container-fluid d-flex align-items-center justify-content-center py-3">
     <div class="row w-100 justify-content-center">
         <div class="list-container col-11 col-md-11 bg-grey rounded-4">
-            <div class="d-flex justify-content-between align-items-center p-3">
+            <div class="d-flex justify-content-between align-items-center">
 
                 <div class="flex-grow-1">
                     <div class="d-flex align-items-baseline gap-3 mb-1">
                         <h1 class="reviewTitle fw-bold mb-0">{{title}}</h1>
-                        {% if Aname %}
-                        <h4 class="fw-bold ms-3 mb-0">{{Aname}}</h4>
-                        {% endif %}
                     </div>
 
-                    <p class="lead mb-0">
-                        <span class="fw-bold text-secondary">{{description}}</span> {{review_text}}
+                    <p class="lead">
+                        {{description}}
                     </p>
                 </div>
 
-                <div class="d-flex align-items-center">
-                    {# Buttons removed to keep the layout clean for the account page #}
+                <div class="d-flex w-25 align-items-center gap-3">
+                    <h2 class="review mb-0 ms-auto me-3">{{rating}}</h2>
                 </div>
 
             </div>
