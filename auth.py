@@ -26,6 +26,17 @@ def require_api_key(role = None):
             db.session.commit()
 
             return f(*args, **kwargs)
-        return decorated_function
-    return decorator
+        
+        auth_header = request.headers.get('Authorization')
 
+        # if nothing entered in the password field
+        if not auth_header:
+            return jsonify({'error': 'Missing credentials'}), 401
+        
+        # if the password is wrong
+        if not check_string(auth_header, ADMIN_PASSWD):
+            return jsonify({'error': 'Invalid admin password'}), 403
+
+        return f(*args, **kwargs)
+
+    return decorated_function

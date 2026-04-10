@@ -1,20 +1,19 @@
 from flask import Flask, flash, render_template, request, redirect, url_for, session, jsonify
 from flask_restful import Api, Resource
-#from auth import login_required, admin_required
+from auth import login_required, admin_required
 from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recommendations ,get_top_rated_movies
-from models import db, User, Favourites, Review, Report, APIkey
+from models import db, User, Favourites, Review, Report
 import random
 import requests
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
+from backend_auth import require_login, require_admin
 import uuid
+from test import tokens
 from sqlalchemy import func
-from auth import require_api_key
 
 app = Flask(__name__, template_folder = "html/template", static_folder = "static")
 
-
-API_KEY = None
 
 
 #store database inside the project directory
@@ -41,24 +40,13 @@ def create_tables():
 
 create_tables()
 
-
-with app.app_context():
-    user_key = APIkey.query.filter_by(role="user").first()
-    admin_key = APIkey.query.filter_by(role="admin").first()
-
-    USER_API_KEY = user_key.key if user_key else None
-    ADMIN_API_KEY = admin_key.key if admin_key else None
-    print(user_key,"userkey")
-    print(admin_key, "adminkey")
-
-    USER_HEADERS = {"X-API-KEY": USER_API_KEY}
-    ADMIN_HEADERS = {"X-API-KEY": ADMIN_API_KEY}
-
-
 #cookie - if anyone is logged in 
 app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
 api = Api(app)
 
+reviews = []
+ratings = {}
+reports = []
 
 @app.route('/')
 def index():
@@ -135,14 +123,14 @@ def signup():
     return render_template('signup.html')
 
 @app.route('/home')
-
+@login_required
 def home():
     user = User.query.filter_by(username=session.get('user')).first()
     if not user:
         return redirect(url_for('login'))
     
     try:
-        response = requests.get(f"http://127.0.0.1:8000/api/favourites?username={user.username}",headers = USER_HEADERS)
+        response = requests.get(f"http://127.0.0.1:8000/api/favourites?username={user.username}")
         if response.status_code == 200:
             favourites_data = response.json() # This is the list of dicts from your API
             favs = [f['movieID'] for f in favourites_data]
@@ -174,13 +162,13 @@ def home():
     return render_template('home.html', movies=formatted_movies)
 
 @app.route('/account')
-
+@login_required
 def account():
     user = User.query.filter_by(username=session.get('user')).first()
     
     favourite_movies = []
     try:
-        fav_resp = requests.get(f"http://127.0.0.1:8000/api/favourites?username={user.username}",headers = USER_HEADERS)
+        fav_resp = requests.get(f"http://127.0.0.1:8000/api/favourites?username={user.username}")
         if fav_resp.status_code == 200:
             for f in fav_resp.json():
                 movie_data = fetch_movie(f['movieID']) 
@@ -197,7 +185,7 @@ def account():
     # API CALL for Reviews
     your_reviews = []
     try:
-        rev_resp = requests.get(f"http://127.0.0.1:8000/api/reviews?userID={user.id}", headers = USER_HEADERS) 
+        rev_resp = requests.get(f"http://127.0.0.1:8000/api/reviews?userID={user.id}") 
         if rev_resp.status_code == 200:
             for r in rev_resp.json():
                 your_reviews.append({
@@ -212,7 +200,7 @@ def account():
     return render_template('account.html', user=user, movies=favourite_movies, reviews=your_reviews)
 
 @app.route('/movie/<int:movie_id>', methods = ['GET','POST'])
-
+@login_required
 def movie_page(movie_id):
     movie = fetch_movie(movie_id)
     credits = fetch_movie_credits(movie_id)
@@ -221,7 +209,7 @@ def movie_page(movie_id):
     # API CALL to check if this movie is a favorite
     is_favourite = False
     try:
-        response = requests.get(f"http://127.0.0.1:8000/api/favourites?username={user.username}",headers = USER_HEADERS)
+        response = requests.get(f"http://127.0.0.1:8000/api/favourites?username={user.username}")
         if response.status_code == 200:
             favs = response.json()
             is_favourite = any(f['movieID'] == movie_id for f in favs)
@@ -252,7 +240,7 @@ def movie_page(movie_id):
 
     reviews = []
     try:
-        rev_resp = requests.get(f"http://127.0.0.1:8000/api/reviews?movieID={movie_id}", headers = USER_HEADERS) 
+        rev_resp = requests.get(f"http://127.0.0.1:8000/api/reviews?movieID={movie_id}") 
         if rev_resp.status_code == 200:
             for r in rev_resp.json():
                 reviews.append({
@@ -276,7 +264,7 @@ def movie_page(movie_id):
     )
 
 @app.route('/search')
-
+@login_required
 def search():
     query = request.args.get('q')
 
@@ -291,7 +279,7 @@ def search():
     return render_template('search.html', movies=results)
 
 @app.route('/editUser', methods=['GET', 'POST'])
-
+@login_required
 
 def editUser():
     if request.method == 'POST':
@@ -309,8 +297,7 @@ def editUser():
             json={
                 "currentPassword": current_pw_input,
                 "newUsername": new_username
-            },
-            headers = USER_HEADERS
+            }
         )
 
         print("STATUS:", response.status_code)
@@ -337,7 +324,7 @@ def editUser():
     return render_template('editUser.html')
 
 @app.route('/editPass', methods=['GET', 'POST'])
-
+@login_required
 def editPass():
     if request.method == 'POST':
         current_pw_input = request.form.get('currentPassword')
@@ -358,7 +345,7 @@ def editPass():
             json={
                 "currentPassword": current_pw_input,
                 "newPassword": new_password
-            }, headers = USER_HEADERS
+            }
         )
         print("STATUS:", response.status_code)
         print("TEXT:", response.text)
@@ -383,7 +370,7 @@ def editPass():
     return render_template('editPass.html')
 
 @app.route('/add_favourite/<int:movie_id>', methods=['POST'])
-
+@login_required
 def add_favourite(movie_id):
     user = User.query.filter_by(username=session['user']).first()
     url = "http://127.0.0.1:8000/api/favourites"
@@ -393,19 +380,17 @@ def add_favourite(movie_id):
         "movieID": movie_id
     }
 
-
-
     try:
         # API CALL instead of db.session.add
-        response = requests.post(url, json=data, headers = USER_HEADERS)
+        response = requests.post(url, json=data)
         if response.status_code == 201:
             return redirect(url_for('movie_page', movie_id=movie_id))
         
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-
+    
 @app.route('/remove_favourite/<int:movie_id>', methods=['POST'])
-
+@login_required
 def remove_favourite(movie_id):
     user = User.query.filter_by(username=session['user']).first()
     url = "http://127.0.0.1:8000/api/favourites"
@@ -415,10 +400,8 @@ def remove_favourite(movie_id):
         "movieID": movie_id
     }
 
-  
-
     try:
-        response = requests.delete(url, json=data, headers = USER_HEADERS)
+        response = requests.delete(url, json=data)
         if response.status_code == 200:
             return redirect(url_for('movie_page', movie_id=movie_id))
         
@@ -426,7 +409,6 @@ def remove_favourite(movie_id):
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/submit_review/<int:movie_id>', methods=['POST'])
-
 def submit_review(movie_id):
     user = User.query.filter_by(username=session['user']).first()
 
@@ -488,7 +470,7 @@ def report_review(review_id):
 # change when other areas are done
 # api for searching movies, else return all movies
 class MovieAPI(Resource):
-    
+    @login_required
     def get(self, movie_id=None):
         if movie_id:
             movie = fetch_movie(movie_id)
@@ -504,13 +486,11 @@ class MovieAPI(Resource):
         return {'error':'No query provided'}, 400
 
 #api for getting, creating and deleting users
-
 class UserAPI(Resource):
-    
+    @require_login
 
     #get method retrive all users from database
-    @require_api_key()
-    def get(self, userid = None):
+    def get(self):
         # Check if username query parameter is provided
         username = request.args.get('username')
         
@@ -519,7 +499,7 @@ class UserAPI(Resource):
             user = User.query.filter_by(username=username).first()
             if not user:
                 return {"error": "User not found"}, 404
-            return ({
+            return jsonify({
                 "id": user.id,
                 "username": user.username,
                 "admin": user.admin,
@@ -527,7 +507,7 @@ class UserAPI(Resource):
         else:
             # Return all users (original behavior)
             users = User.query.all()
-            return ([{
+            return jsonify([{
                 "id": u.id,
                 "username": u.username,
                 "password": u.password,
@@ -568,7 +548,6 @@ class UserAPI(Resource):
             },201
 
     #update method
-    @require_api_key()
     def put(self,userid):
         print("ran put")
         data = request.get_json()
@@ -608,8 +587,7 @@ class UserAPI(Resource):
         }, 200
 
     #delete method
-    @require_api_key(role = "admin")
-    def delete(self,userid):
+    def delete(self):
         data = request.get_json()
         if not data.get("username"):
             return{"message":"Username is required to delete the user"}, 404
@@ -623,7 +601,6 @@ class UserAPI(Resource):
 
         return {"message": f"User '{data['username']}' deleted successfully"}, 200
 backendApi.add_resource(UserAPI, "/api/users/<int:userid>")
-
 
 class LoginAPI(Resource):
     def post(self):
@@ -640,7 +617,14 @@ class LoginAPI(Resource):
         if not db_user or not check_password_hash(db_user.password, data["password"]):
             return {"error":"invalid details"}, 401
         
-        
+        #generate token
+        token = str(uuid.uuid4())
+
+        #store token to user
+        tokens[token] ={
+            "user_id": db_user.id,
+            "role": "admin" if db_user.admin else "user"
+        }
 
         return {
             "message": "login successful",
@@ -649,13 +633,12 @@ class LoginAPI(Resource):
                 "username": db_user.username,
                 "admin": db_user.admin
             },
+            "token": token
         }, 200
 backendApi.add_resource(LoginAPI, "/api/login")
 
 # api for getting, posting and deleteing favourites
-
 class FavouriteAPI(Resource):
-    @require_api_key()
     def get(self):
 
         username_from_arg = request.args.get('username')
@@ -668,7 +651,7 @@ class FavouriteAPI(Resource):
             if user:
                 print(target_name)
                 favourites = Favourites.query.filter_by(userID=user.id).all()
-                return ([{
+                return jsonify([{
                     "id": f.id,
                     "userID": f.userID,
                     "movieID": f.movieID
@@ -676,13 +659,12 @@ class FavouriteAPI(Resource):
                         
         else:
             favourites = Favourites.query.all()
-            return ([{
+            return jsonify([{
                 "id": f.id,
                 "userID": f.userID,
                 "movieID": f.movieID
             }for f in favourites])
-            
-    @require_api_key()
+    
     def post(self):
         data = request.get_json()
 
@@ -709,8 +691,7 @@ class FavouriteAPI(Resource):
                 "movieID": new_favourite.movieID
             }
         }, 201
-
-    @require_api_key()
+    
     def delete(self):
         data = request.get_json()
         
@@ -734,9 +715,7 @@ class FavouriteAPI(Resource):
 backendApi.add_resource(FavouriteAPI, "/api/favourites")
 
 # api for getting and posting reviews
-
 class ReviewAPI(Resource):
-    @require_api_key()
     def get(self):
         movie_id = request.args.get('movieID', type=int)
         user_id = request.args.get('userID', type=int)
@@ -761,7 +740,7 @@ class ReviewAPI(Resource):
 
         reviews = query.all()
 
-        return ([
+        return jsonify([
             {
                 "id": r.id,
                 "userID": r.userID,
@@ -773,7 +752,6 @@ class ReviewAPI(Resource):
             for r in reviews
         ])
     
-    @require_api_key()
     def post(self):
         data = request.get_json()
 
@@ -805,10 +783,9 @@ class ReviewAPI(Resource):
                 "userID": new_review.userID,
                 "movieID": new_review.movieID,
                 "content": new_review.content
-                }
-        }, 201
-        
-    @require_api_key(role = "admin")
+            }
+        }, 201  
+
     def delete(self):
         data = request.get_json()
 
@@ -837,10 +814,8 @@ class ReviewAPI(Resource):
             }
         }, 200
 backendApi.add_resource(ReviewAPI, "/api/reviews")
-
-
+        
 class ReportAPI(Resource):
-    @require_api_key()
     def get(self):
         # Only handle GETTING the list here
         results = (
@@ -908,7 +883,6 @@ class ReportAPI(Resource):
             }
         }, 201
 
-    @require_api_key(role = "admin")
     def delete(self):
         # Handle Dismiss and Delete here using query params or JSON body
         dismiss_id = request.args.get("dismiss_review")
@@ -936,8 +910,8 @@ class ReportAPI(Resource):
 backendApi.add_resource(ReportAPI, "/api/reports")
 
 @app.route('/reviews')
-
-
+@login_required
+@admin_required
 def reviews():
 
     resp = requests.get("http://127.0.0.1:8000/api/reports")
@@ -961,18 +935,18 @@ def reviews():
     return render_template('admin_review.html', reviews=reported_reviews)
 
 @app.route('/admin/dismiss/<int:review_id>', methods=['POST'])
-
+@admin_required
 def admin_dismiss(review_id):
     # This triggers the 'dismiss_review' logic in your ReportAPI.delete method
     url = f"http://127.0.0.1:8000/api/reports?dismiss_review={review_id}"
-    resp = requests.delete(url, headers = ADMIN_HEADERS) 
+    resp = requests.delete(url) 
     return redirect(url_for('reviews'))
 
 @app.route('/admin/delete_review/<int:review_id>', methods=['POST'])
-
+@admin_required
 def admin_delete(review_id):
     url = f"http://127.0.0.1:8000/api/reports?delete_review={review_id}"
-    resp = requests.delete(url, headers = ADMIN_HEADERSM)
+    resp = requests.delete(url)
     
     if resp.status_code == 200:
         flash("Review and reports deleted successfully.")

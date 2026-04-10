@@ -1,13 +1,13 @@
 {% macro input(name , type ="text", placeholder="" , class ="") %}
 <div>
-    <input name="{{name}}" type="{{type}}" placeholder="{{placeholder}}" class="text-center w-100 {{class}}">
+    <input name="{{name}}" type="{{type}}" placeholder="{{placeholder}}" class="text-center w-100 {{class}}" min="0" max="10">
     </input>
 </div>
 {% endmacro %}
 
 {% macro reviewText(name , type ="text", placeholder="" , class ="") %}
 <div>
-    <textarea  name="{{name}}" type="{{type}}" placeholder="{{placeholder}}" class="auto-expand w-100 {{class}} " rows="3"></textarea >
+    <textarea  name="{{name}}" type="{{type}}" placeholder="Write a review" class="auto-expand w-100 {{class}} " rows="3"></textarea >
 </div>
 {% endmacro %}
 
