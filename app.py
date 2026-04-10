@@ -272,21 +272,6 @@ def search():
 @app.route('/movie/add/<int:movie_id>', methods=['POST'])
 @login_required
 def movieapi(movie_id):
-    user_id = session.get('user_id') # Adjust based on how you store user info
-    
-    # 1. Check if it's already in the database to avoid duplicates
-    exists = Favourites.query.filter_by(user_id=user_id, movie_id=movie_id).first()
-    
-    if not exists:
-        # 2. Add to database
-        new_favorite = Favourites(user_id=user_id, movie_id=movie_id)
-        db.session.add(new_favorite)
-        db.session.commit()
-        flash("Movie added to your favorites!")
-    else:
-        flash("Movie is already in your list.")
-
-    # 3. Redirect back to the same movie page
     return redirect(url_for('movie_page', movie_id=movie_id))
 
 @app.route('/editUser', methods=['GET', 'POST'])
@@ -371,9 +356,10 @@ def remove_favourite(movie_id):
     }
 
     try:
-        # API CALL instead of Favourites.query.delete
         response = requests.delete(url, json=data)
-        return jsonify({"success": response.ok}), response.status_code
+        if response.status_code == 200:
+            return redirect(url_for('movie_page', movie_id=movie_id))
+        
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
     
@@ -626,7 +612,7 @@ class FavouriteAPI(Resource):
         db.session.delete(favourite)
         db.session.commit()
 
-        return {"message": f"User '{data['id']}' deleted successfully"}, 200
+        return {"message": f"User '{data['userID']}' deleted successfully"}, 200
 backendApi.add_resource(FavouriteAPI, "/api/favourites")
 
 # api for getting and posting reviews
