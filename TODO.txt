@@ -21,7 +21,6 @@ VERY VERY BAD
 error codes matching 
 
 Oliver:
-    query for finding all reports for x review and sorting them in order of most reported
     API Authentication
    
   
