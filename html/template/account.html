@@ -1,10 +1,6 @@
 {% extends 'layout/accountTemplate.html' %}
-{% from 'components/forms.html' import input %}
-{% from 'components/forms.html' import button %}
-{% from 'components/user.html' import movieCard %}
-{% from 'components/forms.html' import navButton %}
-{% from 'components/user.html' import MovieCardScroll %}
-{% from 'components/forms.html' import review %}
+{% from 'components/forms.html' import input,button ,navButton %}
+{% from 'components/user.html' import MovieCardScroll,accountReview,movieCard %}
 
 
 {% block heading %}
@@ -31,9 +27,9 @@ Welcome, {{ session['user'] }}!
 {{ MovieCardScroll(movies,"Your Favourites") }}
 
 <div class="container mt-5">
-    <h3>My Reviews</h3>
+    <h2 class="scrollHeading">My Reviews</h2>
     {% for r in reviews %}
-    {{ review('user', r.movie_title, '', 'Review:', r.content) }}
+    {{ accountReview('user', r.movie_title, '', 'Review:', r.content) }}
     {% else %}
     <p class="text-muted ms-2">You haven't written any reviews yet.</p>
     {% endfor %}
