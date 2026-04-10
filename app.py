@@ -115,7 +115,7 @@ def signup():
     return render_template('signup.html')
 
 @app.route('/home')
-
+@require_login
 def home():
     user = User.query.filter_by(username=data['username']).first()
     favourites = Favourites.query.filter_by(userID=user.id).all()
@@ -150,7 +150,7 @@ def home():
         return render_template('home.html', movies=formatted_movies)
 
 @app.route('/account')
-@login_required
+
 def account():
     user = User.query.filter_by(username=data["username"]).first()
     user_id = user.id
