@@ -54,7 +54,54 @@ def index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    #admin login 
+    if request.method == 'POST':
+        url = "http://localhost:8000/api/login"
+
+        user = request.form.get('Username')
+        password = request.form.get('Password')
+
+        print(f"Login attempt for user: {user}")
+        
+        try:
+            global data
+            data = {
+                "username": user,
+                "password": password
+            }
+            response = requests.post(url, json=data)
+
+            if response.status_code == 200:
+                return redirect(url_for('home'))
+            return render_template('login_error.html')
+        except requests.exceptions.RequestException as e:
+            print(f"API Error: {e}")
+
+        
+
+
+    return render_template('login.html')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    '''admin login 
     if request.method == 'POST':
         user = request.form.get('Username')
         password = request.form.get('Password')
@@ -83,7 +130,7 @@ def login():
 
         return redirect(url_for('home'))
 
-    return render_template('login.html')
+    return render_template('login.html')'''
 
 @app.route('/logout', methods=['POST'])
 def logout():
@@ -318,23 +365,34 @@ def editPass():
 @app.route('/add_favourite/<int:movie_id>', methods=['POST'])
 @login_required
 def add_favourite(movie_id):
-    # Get the user object using the username stored in the session
-    user = User.query.filter_by(username=session['user']).first()
+        user = User.query.filter_by(username=session['user']).first()
     
-    # Check if this movie is already in their favourites
-    exists = Favourites.query.filter_by(userID=user.id, movieID=movie_id).first()
-    
-    if not exists:
-        # Add to database using the correct model field names (userID, movieID)
-        new_fav = Favourites(userID=user.id, movieID=movie_id)
-        db.session.add(new_fav)
-        db.session.commit()
-        flash("Movie added to your favourites!")
-    else:
-        flash("Movie is already in your favourites.")
-    
-    # Redirect back to the movie page (the 'movie_page' function handles the GET)
-    return redirect(url_for('movie_page', movie_id=movie_id))
+        # 2. Define the API endpoint (Internal call)
+        # Using localhost:8000 because that is where your app is running
+        url = "http://127.0.0.1:8000/api/favourites"
+        
+        # 3. Prepare the JSON data exactly as your API expects it
+        data = {
+            "userID": user.id,
+            "movieID": movie_id
+        }
+
+        try:
+            # 4. Make the POST request to your friend's API
+            response = requests.post(url, json=data)
+            
+            if response.status_code == 201:
+                flash("Movie added to your favourites via API!")
+            elif response.status_code == 400:
+                flash("Movie is already in your favourites.")
+            else:
+                flash("Failed to add favourite via API.")
+                
+        except requests.exceptions.RequestException as e:
+            print(f"API Error: {e}")
+            flash("Could not connect to the Favorites service.")
+
+        return redirect(url_for('movie_page', movie_id=movie_id))
             
 # change when other areas are done
 # api for searching movies, else return all movies
@@ -497,7 +555,7 @@ class LoginAPI(Resource):
             },
             "token": token
         }, 200
-backendApi.add_resource(LoginAPI, "/api/favourites")
+backendApi.add_resource(LoginAPI, "/api/login")
 
 # api for getting, posting and deleteing favourites
 class FavouriteAPI(Resource):
