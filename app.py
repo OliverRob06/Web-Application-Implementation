@@ -63,7 +63,7 @@ def login():
         password = request.form.get('Password')
 
         print(f"Login attempt for user: {user}")
-        
+
         try:
             global data
             data = {
@@ -115,9 +115,9 @@ def signup():
     return render_template('signup.html')
 
 @app.route('/home')
-@login_required
+
 def home():
-    user = User.query.filter_by(username=session['user']).first()
+    user = User.query.filter_by(username=data['username']).first()
     favourites = Favourites.query.filter_by(userID=user.id).all()
     
     favs = [f.movieID for f in favourites]
@@ -152,7 +152,7 @@ def home():
 @app.route('/account')
 @login_required
 def account():
-    user = User.query.filter_by(username=session['user']).first()
+    user = User.query.filter_by(username=data["username"]).first()
     user_id = user.id
 
     # Get user's favourites
