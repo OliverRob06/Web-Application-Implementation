@@ -70,6 +70,8 @@ def login():
 
         try:
             session['user'] = user
+            print(session.get('user'))
+            
             response = requests.post(url, json=data)
 
             if response.status_code == 200:
@@ -115,6 +117,7 @@ def signup():
     return render_template('signup.html')
 
 @app.route('/home')
+@login_required
 def home():
     user = User.query.filter_by(username=session['user']).first()
     favourites = Favourites.query.filter_by(userID=user.id).all()
@@ -149,9 +152,8 @@ def home():
         return render_template('home.html', movies=formatted_movies)
 
 @app.route('/account')
-
 def account():
-    user = User.query.filter_by(username=data["username"]).first()
+    user = User.query.filter_by(username = session.get('user')).first()
     user_id = user.id
 
     # Get user's favourites
@@ -343,6 +345,7 @@ def add_favourite(movie_id):
 
         return redirect(url_for('movie_page', movie_id=movie_id))
             
+
 # change when other areas are done
 # api for searching movies, else return all movies
 class MovieAPI(Resource):
@@ -510,8 +513,7 @@ backendApi.add_resource(LoginAPI, "/api/login")
 class FavouriteAPI(Resource):
     def get(self):
         #need a way of getting user
-        
-        username = User.query.filter_by(username = session["user"]).first()
+        username = User.query.filter_by(username = session.get('user')).first()
 
         if username != None:
 
@@ -593,15 +595,28 @@ backendApi.add_resource(FavouriteAPI, "/api/favourites")
 
 # api for getting and posting reviews
 class ReviewAPI(Resource):
-    @require_login
+    
     def get(self):
-        reviews = Review.query.all()
-        return jsonify([{   
-            "id": r.id,
-            "userID": r.userID,
-            "movieID": r.movieID,
-            "content": r.content,
+
+        username = User.query.filter_by(username = session.get('user')).first()
+        
+        if username != None:
+            reviews = Review.query.filter_by(userID = username.id).all()
+            return jsonify([{
+                "id": r.id,
+                "userID": r.userID,
+                "movieID": r.movieID,
+                "content": r.content
             } for r in reviews])
+
+        else:
+            reviews = Review.query.all()
+            return jsonify([{   
+                "id": r.id,
+                "userID": r.userID,
+                "movieID": r.movieID,
+                "content": r.content,
+                } for r in reviews])
     
     def post(self):
         data = request.get_json()
