@@ -69,23 +69,11 @@ project/
 
 ### Step 1: Clone the Repository
 ```bash
-git clone (https://github.com/OliverRob06/Web-Application-Implementation.git)
+git clone -b fixedapi https://github.com/OliverRob06/Web-Application-Implementation.git
 cd Web-Application-Implementation
 ```
 
 ### Step 2: Install Dependencies
-Create a `requirements.txt` file with the following content:
-
-```txt
-Flask==2.3.3
-Flask-RESTful==0.3.9
-Flask-SQLAlchemy==3.0.5
-SQLAlchemy==2.0.19
-requests==2.31.0
-Werkzeug==2.3.7
-```
-
-Then install:
 ```bash
 pip install -r requirements.txt
 ```
