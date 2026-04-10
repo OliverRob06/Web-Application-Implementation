@@ -248,10 +248,8 @@ def movie_page(movie_id):
                     "content": r.get("content"),
                     "username": User.query.get(r.get("userID")).username
                 })
-        print(reviews)
     except Exception as e:
         print(f"Review API Error: {e}")
-    
 
     return render_template(
         'info.html',
@@ -366,6 +364,11 @@ def remove_favourite(movie_id):
         
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/submit_review/<int:movie_id>', methods=['POST'])
+@login_required
+def submit_review(movie_id):
+    pass
 
 # change when other areas are done
 # api for searching movies, else return all movies
@@ -746,81 +749,13 @@ class ReviewAPI(Resource):
         }, 200
 backendApi.add_resource(ReviewAPI, "/api/reviews")
         
-# change when other areas are done
-# api for admins reviewing reported reviews
-class ReportAPI(Resource):  
-    @require_login
+class ReportAPI(Resource):
     def get(self):
-        reports = Report.query.all()
-        return jsonify([{
-            "id": r.id,
-            "userID": r.userID,
-            "reviewID": r.reviewID
-        } for r in reports])
-    
-    def post(self):
-        data = request.get_json()
-
-        if not data.get("userID") or not data.get("reviewID"):
-            return {"message": "Requires a userID and reviewID to make a report"}, 400
-
-        existing_report = Report.query.filter_by(
-            userID=data["userID"], 
-            reviewID=data["reviewID"]
-        ).first()
-        
-        if existing_report:
-            return {"error": "Report already exists"}, 400
-
-        # FIXED: Create a Report, not a Rating
-        new_report = Report(
-            userID=data["userID"],
-            reviewID=data["reviewID"]
-        )
-
-        db.session.add(new_report)
-        db.session.commit()
-        
-        return {
-            "message": "New report successfully added",
-            "report": {
-                "id": new_report.id,
-                "userID": new_report.userID,
-                "reviewID": new_report.reviewID,
-            }
-        }, 201
-    
-    def delete(self):
-        data = request.get_json()
-        
-        if not data.get("reviewID"):
-            return {"message": "reviewID required to delete reports"}, 400
-        
-        # Delete all reports for a specific review (admin action)
-        reports = Report.query.filter_by(reviewID=data["reviewID"]).all()
-        
-        for report in reports:
-            db.session.delete(report)
-        
-        # Optionally delete the review itself
-        if data.get("delete_review"):
-            review = Review.query.filter_by(id=data["reviewID"]).first()
-            if review:
-                db.session.delete(review)
-        
-        db.session.commit()
-        
-        return {
-            "message": f"Deleted {len(reports)} report(s) for review {data['reviewID']}"
-        }, 200
-backendApi.add_resource(ReportAPI, "/api/reports")
-
-class ReviewsByReportCountAPI(Resource):
-    def get(self):
+        # Only handle GETTING the list here
         results = (
             db.session.query(
                 Review,
-                func.count(Report.id).label("ReportCount")
+                func.count(Report.id).label("report_count")
             )
             .outerjoin(Report, Review.id == Report.reviewID)
             .group_by(Review.id)
@@ -828,81 +763,84 @@ class ReviewsByReportCountAPI(Resource):
             .all()
         )
 
-        return jsonify([
+        # Return a list directly (Flask-RESTful handles the JSON)
+        return [
             {
-                "id": review.id,
+                "reviewID": review.id,
                 "userID": review.userID,
-                "movieid": review.movieID,
+                "movieID": review.movieID,
                 "content": review.content,
-                "ReportCount": report_count
+                "report_count": report_count
             }
             for review, report_count in results
-        ])
-backendApi.add_resource(ReviewsByReportCountAPI, "/api/sortedByReports")        
-   
+        ]
 
+    def delete(self):
+        # Handle Dismiss and Delete here using query params or JSON body
+        dismiss_id = request.args.get("dismiss_review")
+        delete_id = request.args.get("delete_review")
+
+        if dismiss_id:
+            Report.query.filter_by(reviewID=dismiss_id).delete()
+            db.session.commit()
+            return {"message": "Dismissed"}, 200
+
+        if delete_id:
+            Report.query.filter_by(reviewID=delete_id).delete()
+            Review.query.filter_by(id=delete_id).delete()
+            db.session.commit()
+            return {"message": "Deleted"}, 200
+        
+        return {"error": "No action specified"}, 400
+
+backendApi.add_resource(ReportAPI, "/api/reports")
 @app.route('/api/admin/test')
 @admin_required
 def admin_secret():
     return "If you see this, you are an Admin!"
 
-@app.route('/reviews', endpoint='review')
+@app.route('/reviews')
 @login_required
-@admin_required 
-def admin_reviews_list():
-    # Get all reports with their associated reviews
-    reports = Report.query.all()
-    
-    # Get unique reviews that have been reported
+@admin_required
+def reviews():
+
+    resp = requests.get("http://127.0.0.1:8000/api/reports")
+    data = resp.json()
+
     reported_reviews = []
-    seen_review_ids = set()
-    
-    for report in reports:
-        if report.reviewID not in seen_review_ids:
-            seen_review_ids.add(report.reviewID)
-            review = Review.query.filter_by(id=report.reviewID).first()
-            
-            if review:
-                user = User.query.filter_by(id=review.userID).first()
-                movie_data = fetch_movie(review.movieID)
-                
-                # Count how many reports this review has
-                report_count = Report.query.filter_by(reviewID=review.id).count()
-                
-                reported_reviews.append({
-                    "review_id": review.id,
-                    "movie_title": movie_data.get('title', 'Unknown Movie') if movie_data else 'Unknown Movie',
-                    "username": user.username if user else "Unknown",
-                    "content": review.content,
-                    "report_count": report_count,
-                    "movie_id": review.movieID
-                })
-    
+
+    for review in data:
+        user = User.query.filter_by(id=review["userID"]).first()
+        movie_data = fetch_movie(review["movieID"])
+
+        reported_reviews.append({
+            "review_id": review["reviewID"],
+            "movie_title": movie_data.get('title') if movie_data else 'Unknown',
+            "username": user.username if user else "Unknown",
+            "content": review["content"],
+            "report_count": review["report_count"],
+            "movie_id": review["movieID"]
+        })
+
     return render_template('admin_review.html', reviews=reported_reviews)
 
-@app.route('/admin/delete/<int:review_id>', methods=['POST'])
+@app.route('/admin/dismiss/<int:review_id>', methods=['POST'])
 @admin_required
-def delete_reported_review(review_id):
-    Report.query.filter_by(reviewID=review_id).delete()
-    Review.query.filter_by(id=review_id).delete()
-    db.session.commit()
-    return redirect(url_for('review'))
+def admin_dismiss(review_id):
+    # This triggers the 'dismiss_review' logic in your ReportAPI.delete method
+    url = f"http://127.0.0.1:8000/api/reports?dismiss_review={review_id}"
+    resp = requests.delete(url) 
+    flash("Reports dismissed.")
+    return redirect(url_for('reviews'))
 
-@app.route('/admin/dismiss/<int:review_id>')
+@app.route('/admin/delete_review/<int:review_id>', methods=['POST'])
 @admin_required
-def dismiss_reports(review_id):
-    Report.query.filter_by(reviewID=review_id).delete()
-    db.session.commit()
-    return redirect(url_for('review'))
-
-# Change this route to use the logic
-@app.route('/admin_review')
-@login_required
-@admin_required 
-def admin_review():
-    # Instead of just rendering, redirect to the 'review' function 
-    # OR copy the logic from the @app.route('/reviews') here.
-    return redirect(url_for('review'))
+def admin_delete(review_id):
+    # This triggers the 'delete_review' logic in your ReportAPI.delete method
+    url = f"http://127.0.0.1:8000/api/reports?delete_review={review_id}"
+    resp = requests.delete(url)
+    flash("Review and reports deleted.")
+    return redirect(url_for('reviews'))
 
 @app.route('/admin_search')
 def admin_search():
@@ -915,4 +853,4 @@ print("DB path:", os.path.abspath(db_path))
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug = True, host = '0.0.0.0', port = 8000)
+    app.run(debug = True, host = '0.0.0.0', port = 8000, threaded=True)

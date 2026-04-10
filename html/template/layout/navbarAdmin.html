@@ -9,15 +9,15 @@
 			<div class="col-2">
 				{{navButton('movies','admin_search','navButton')}}
 			</div>
-            <div class="col-2">
-				{{navButton('reviews','admin_review','navButton')}}
+			<div class="col-2">
+				{{navButton('reviews','reviews','navButton')}}
 			</div>
 			<div class="col-3">
 			</div>
 			<div class="col-2">
-                <form action="{{ url_for('logout') }}" method="POST">
-                    {{navButton('Logout','admin_review','navButton')}}
-                </form>
+				<form action="{{ url_for('logout') }}" method="POST">
+					{{navButton('Logout','logout','navButton')}}
+				</form>
 			</div>
 			<div class="col-1">
 				<img class="profile" src="{{ url_for('static', filename='images/AdminIcon.png') }}"></a>
