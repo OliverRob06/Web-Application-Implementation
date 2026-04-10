@@ -184,13 +184,13 @@ def account():
     # API CALL for Reviews
     your_reviews = []
     try:
-        rev_resp = requests.get(f"http://127.0.0.1:8000/api/reviews?username={user.username}") # Note: Your ReviewAPI.get returns ALL reviews currently
+        rev_resp = requests.get(f"http://127.0.0.1:8000/api/reviews?userID={user.id}") 
         if rev_resp.status_code == 200:
             for r in rev_resp.json():
                 your_reviews.append({
                     "rating": r.get("rating"),
                     "content": r.get("content"),
-                    "movie_id": r.get("movie_id")
+                    "movie_id": r.get("movieID")
                 })
     except Exception as e:
         print(f"Review API Error: {e}")
