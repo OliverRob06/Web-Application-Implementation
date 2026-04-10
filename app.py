@@ -238,19 +238,17 @@ def movie_page(movie_id):
     genres = movie.get('genres')
     genre_name = [c['name'] for c in genres]
 
-    user = session['user']
-
     reviews = []
     try:
-        rev_resp = requests.get(f"http://127.0.0.1:8000/api/reviews?userID={user.id}") 
+        rev_resp = requests.get(f"http://127.0.0.1:8000/api/reviews?movieID={movie_id}") 
         if rev_resp.status_code == 200:
             for r in rev_resp.json():
-                your_reviews.append({
+                reviews.append({
                     "rating": r.get("rating"),
                     "content": r.get("content"),
-                    "username": r.get('userID')
+                    "username": User.query.get(r.get("userID")).username
                 })
-        print(your_reviews)
+        print(reviews)
     except Exception as e:
         print(f"Review API Error: {e}")
     
@@ -262,7 +260,8 @@ def movie_page(movie_id):
         directors=directors,
         writers=writers, 
         genres=genre_name,
-        is_favourite=is_favourite
+        is_favourite=is_favourite,
+        reviews=reviews
     )
 
 @app.route('/search')
