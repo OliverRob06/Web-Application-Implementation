@@ -69,8 +69,8 @@ project/
 
 ### Step 1: Clone the Repository
 ```bash
-git clone <repository-url>
-cd <project-directory>
+git clone (https://github.com/OliverRob06/Web-Application-Implementation.git)
+cd Web-Application-Implementation
 ```
 
 ### Step 2: Install Dependencies
