@@ -1,5 +1,5 @@
 {% extends 'layout/adminBase.html' %}
-{% from 'components/forms.html' import input, button, review %}
+{% from 'components/forms.html' import input, button, review, movie %}
 
 {% block content %}
 <div class="row align-items-center g-0 mb-4">
@@ -10,6 +10,11 @@
         {{ button('Filter','submit','Filter','filterButton') }}
     </div>
 </div>
+
+
+<!-- {{review('reviews','Bleep Blorp', 'the bleebers' 'BLabee bughh be bee blee Labee bughh be bee bleeLabee bughh be bee bleeLabee bughh be bee blee', '9.8')}} -->
+<!-- {{review('reviews','BUngo','Jeff','BLabee bughh be bee blee Labee bughh be bee bleeLabee bughh be bee bleeLabee bughh be bee blee', '4.8')}} -->
+
 
 {% for r in reviews %}
 {{ review(r.title, r.Aname, r.description, r.review) }}
