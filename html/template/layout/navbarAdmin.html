@@ -1,5 +1,4 @@
-{% from 'components/forms.html' import input %}
-{% from 'components/forms.html' import navButton %}
+{% from 'components/forms.html' import input,button ,navButton %}
 
 <nav>
 	<div class="container-fluid">
@@ -13,10 +12,12 @@
             <div class="col-2">
 				{{navButton('reviews','admin_review','navButton')}}
 			</div>
-			<div class="col-1">
+			<div class="col-3">
 			</div>
-			<div class="col-4">
-				
+			<div class="col-2">
+                <form action="{{ url_for('logout') }}" method="POST">
+                    {{navButton('Logout','admin_review','navButton')}}
+                </form>
 			</div>
 			<div class="col-1">
 				<img class="profile" src="{{ url_for('static', filename='images/AdminIcon.png') }}"></a>

@@ -226,6 +226,12 @@ input {
 	content: url("/static/images/hoveredDeleteIcon.png");
 }
 
+.NavLogout {
+	margin:0 !important;
+
+}
+
+/* ----------------------------- */
 
 .heading2{
 	padding: 25px 0px 25px 0px;
