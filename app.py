@@ -4,6 +4,7 @@ from auth import login_required, admin_required
 from tmdb import fetch_movie, search_movies_tmdb, fetch_movie_credits, get_recommendations ,get_top_rated_movies
 from models import db, User, Favourites, Review, Rating, Report
 import random
+import requests
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from backend_auth import require_login, require_admin
@@ -315,26 +316,27 @@ def editPass():
     return render_template('editPass.html')
 
 @app.route('/add_favourite/<int:movie_id>', methods=['POST'])
-@login_required
 def add_favourite(movie_id):
-    # Get the user object using the username stored in the session
+
     user = User.query.filter_by(username=session['user']).first()
     
-    # Check if this movie is already in their favourites
-    exists = Favourites.query.filter_by(userID=user.id, movieID=movie_id).first()
+    url = "http://127.0.0.1:8000/api/favourites"
     
-    if not exists:
-        # Add to database using the correct model field names (userID, movieID)
-        new_fav = Favourites(userID=user.id, movieID=movie_id)
-        db.session.add(new_fav)
-        db.session.commit()
-        flash("Movie added to your favourites!")
-    else:
-        flash("Movie is already in your favourites.")
-    
-    # Redirect back to the movie page (the 'movie_page' function handles the GET)
-    return redirect(url_for('movie_page', movie_id=movie_id))
+    data = {
+        "userID": user.id,
+        "movieID": movie_id
+    }
 
+    try:
+        response = requests.post(url, json=data)
+        
+        if response.status_code == 201:
+            return jsonify({"success": True, "message": "Added"}), 201
+        
+        return jsonify({"success": False, "message": "Already exists or error"}), 400
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+            
 # change when other areas are done
 # api for searching movies, else return all movies
 class MovieAPI(Resource):
@@ -500,7 +502,6 @@ backendApi.add_resource(LoginAPI, "/api/favourites")
 
 # api for getting, posting and deleteing favourites
 class FavouriteAPI(Resource):
-    @require_login
     def get(self):
         favourites = Favourites.query.all()
         return jsonify([{
@@ -514,11 +515,15 @@ class FavouriteAPI(Resource):
         data = request.get_json()
 
         if not data.get("userID") or not data.get("movieID"):
-            return{"message": "Requires a userID and movieID to post a rating"},400
+            print('test1.2')
+            return{"message": "Requires a userID and movieID to post a rating"},401
 
         existing_favourite = Favourites.query.filter_by(userID=data["userID"], movieID=data["movieID"]).first()
         if existing_favourite:
-            return {"error": "Favourite already exists"}, 400
+            print('test1.3')
+            return {"error": "Favourite already exists"}, 402
+        
+        print('test2')
 
 
         new_favourite = Favourites(
