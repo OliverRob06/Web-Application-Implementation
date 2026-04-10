@@ -279,29 +279,45 @@ def search():
 
 @app.route('/editUser', methods=['GET', 'POST'])
 @login_required
+
 def editUser():
     if request.method == 'POST':
         current_pw_input = request.form.get('currentPassword')
         new_username = request.form.get('newUsername')
-        
+
         user = User.query.filter_by(username=session['user']).first()
 
-        # Check if password is correct
-        if user.password != current_pw_input:
-            flash("Incorrect current password.")
+        if not user:
+            flash("User not found. Please log in again.")
+            return redirect(url_for('login'))
+
+        response = requests.put(
+            f"http://localhost:8000/api/users/{user.id}",
+            json={
+                "currentPassword": current_pw_input,
+                "newUsername": new_username
+            }
+        )
+
+        print("STATUS:", response.status_code)
+        print("TEXT:", response.text)
+
+        if response.headers.get("Content-Type", "").startswith("application/json"):
+            data = response.json()
+        else:
+            data = {"message": "Server returned invalid response"}
+
+        if response.status_code != 200:
+            print("error, user name not changed")
             return redirect(url_for('editUser'))
 
-        # Check if new username is available
-        if User.query.filter_by(username=new_username).first():
-            flash("Username already exists.")
-            return redirect(url_for('editUser'))
+        # Update session only if username changed
+        if new_username:
+            print(new_username)
+            session['user'] = new_username
+            print("Username updated successfully!")
 
-        # Update
-        user.username = new_username
-        db.session.commit()
-        session['user'] = new_username # Update session to match new name
         
-        flash("Username updated successfully!")
         return redirect(url_for('account'))
 
     return render_template('editUser.html')
@@ -310,6 +326,7 @@ def editUser():
 @login_required
 def editPass():
     if request.method == 'POST':
+        current_pw_input = request.form.get('currentPassword')
         new_password = request.form.get('newPassword')
         confirm_password = request.form.get('confirmPassword')
         
@@ -317,11 +334,36 @@ def editPass():
             flash("Passwords do not match!")
             return redirect(url_for('editPass'))
 
-        current_user = User.query.filter_by(username=session['user']).first()
-        current_user.password = new_password # Note: In production, use hashing!
-        db.session.commit()
+        user = User.query.filter_by(username=session['user']).first()
+        if not user:
+            print("error user not found")
+            return redirect(url_for('login'))
+        
+        response = requests.put(
+            f"http://localhost:8000/api/users/{user.id}",
+            json={
+                "currentPassword": current_pw_input,
+                "newPassword": new_password
+            }
+        )
+        print("STATUS:", response.status_code)
+        print("TEXT:", response.text)
 
-        flash("Password updated successfully!")
+        if response.headers.get("Content-Type", "").startswith("application/json"):
+            data = response.json()
+        else:
+            data = {"message": "Server returned invalid response"}
+
+        if response.status_code != 200:
+            print("error, user name not changed")
+            return redirect(url_for('editPass'))
+
+        # Update session only if username changed
+        if new_password:
+            session['user'] = user.username
+
+        print("Password updated successfully!")
+        
         return redirect(url_for('account'))
 
     return render_template('editPass.html')
@@ -451,28 +493,35 @@ class UserAPI(Resource):
             },201
 
     #update method
-    def put(self):
+    def put(self,userid):
+        print("ran put")
         data = request.get_json()
+        user = User.query.get(userid)
 
-        if not data.get("username"):
-            return{"message":"Username is required to update the user"}, 400
-        
-        user = User.query.filter_by(username=data["username"]).first()
         if not user:
-            return{"error": "User not Found"}, 404
+            return {"error":"User not Found"},404
+
+        if not check_password_hash(user.password, data.get("currentPassword")):
+            return{"message":"Incorrect Password"}, 400
+        
 
         #update username if provided and not duplicate
-        if data.get("newUsername"):
-            if User.query.filter_by(username=data["newUsername"]).first():
+        new_username = data.get("newUsername")
+        if new_username:
+            existing_user = User.query.filter_by(username=new_username).first()
+            if existing_user and existing_user.id != user.id: 
                 return{"message":"New username alreadly exists"}, 409 
             user.username = data["newUsername"]
+            db.session.commit()
     
 
         #update password if provided
-        if data.get("newPassword"):
-            user.password = data["newPassword"]
+        newPassword = data.get("newPassword")
+        if newPassword:
+            user.password = generate_password_hash(newPassword)
+            db.session.commit()
 
-        db.session.commit()
+        
         return {
             "message": "User updated successfully",
             "user":
@@ -496,7 +545,7 @@ class UserAPI(Resource):
         db.session.commit()
 
         return {"message": f"User '{data['username']}' deleted successfully"}, 200
-backendApi.add_resource(UserAPI, "/api/users")
+backendApi.add_resource(UserAPI, "/api/users/<int:userid>")
 
 class LoginAPI(Resource):
     def post(self):
