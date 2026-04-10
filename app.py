@@ -239,6 +239,20 @@ def movie_page(movie_id):
     genre_name = [c['name'] for c in genres]
 
     user = session['user']
+
+    reviews = []
+    try:
+        rev_resp = requests.get(f"http://127.0.0.1:8000/api/reviews?userID={user.id}") 
+        if rev_resp.status_code == 200:
+            for r in rev_resp.json():
+                your_reviews.append({
+                    "rating": r.get("rating"),
+                    "content": r.get("content"),
+                    "username": r.get('userID')
+                })
+        print(your_reviews)
+    except Exception as e:
+        print(f"Review API Error: {e}")
     
 
     return render_template(
@@ -607,38 +621,40 @@ backendApi.add_resource(FavouriteAPI, "/api/favourites")
 
 # api for getting and posting reviews
 class ReviewAPI(Resource):
-    
     def get(self):
+        movie_id = request.args.get('movieID', type=int)
+        user_id = request.args.get('userID', type=int)
+        username = request.args.get('username')
 
+        query = Review.query
 
-        username_from_arg = request.args.get('username')
-        username_from_session = session.get('user')
+        # filter by movieID
+        if movie_id is not None:
+            query = query.filter(Review.movieID == movie_id)
 
-        target_name = username_from_arg or username_from_session
+        # filter by userID
+        if user_id is not None:
+            query = query.filter(Review.userID == user_id)
 
-        print(target_name)
-        
-        if target_name:
-            user = User.query.filter_by(username=target_name).first()
-            if user:
-                reviews = Review.query.filter_by(userID = user.id).all()
-                return jsonify([{
-                    "id": r.id,
-                    "userID": r.userID,
-                    "movieID": r.movieID,
-                    "content": r.content,
-                    "rating": r.rating,
-                } for r in reviews])
+        # filter by username (convert to userID)
+        if username:
+            user = User.query.filter_by(username=username).first()
+            if not user:
+                return {"error": "User not found"}, 404
+            query = query.filter(Review.userID == user.id)
 
-        else:
-            reviews = Review.query.all()
-            return jsonify([{   
+        reviews = query.all()
+
+        return jsonify([
+            {
                 "id": r.id,
                 "userID": r.userID,
                 "movieID": r.movieID,
                 "content": r.content,
                 "rating": r.rating
-                } for r in reviews])
+            }
+            for r in reviews
+        ])
     
     def post(self):
         data = request.get_json()
